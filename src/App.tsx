@@ -3,7 +3,6 @@ import { useEffect, useState } from "react"
 /* ---------- Generative SVG covers ---------- */
 
 function PersonaCover() {
-  // Multi-agent network: interconnected persona nodes
   const nodes = [
     [78, 60], [188, 44], [300, 82], [128, 128], [232, 132],
     [56, 176], [176, 196], [286, 178], [340, 118], [120, 60],
@@ -32,7 +31,6 @@ function PersonaCover() {
 }
 
 function NoteCover() {
-  // Audio fingerprint: spectrogram bars + constellation peaks
   const bars = Array.from({ length: 46 })
   const peaks = [[60, 70], [104, 52], [150, 96], [206, 60], [250, 108], [300, 74], [338, 120]]
   return (
@@ -60,7 +58,6 @@ function NoteCover() {
 }
 
 function BlockchainCover() {
-  // Linked-block lattice
   const blocks = [[40, 96], [130, 60], [130, 140], [220, 96], [310, 60], [310, 140]]
   const links = [[0, 1], [0, 2], [1, 3], [2, 3], [3, 4], [3, 5]]
   return (
@@ -83,74 +80,31 @@ function BlockchainCover() {
   )
 }
 
-function HeroCover() {
-  // Abstract composition tying the collection together
-  const dots = Array.from({ length: 34 })
-  return (
-    <svg className="cover-svg" viewBox="0 0 560 480" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-      <defs>
-        <radialGradient id="hg" cx="62%" cy="42%" r="60%">
-          <stop offset="0%" stopColor="#12324f" />
-          <stop offset="100%" stopColor="#080e15" />
-        </radialGradient>
-      </defs>
-      <rect width="560" height="480" fill="url(#hg)" />
-      <g stroke="#62aaff" strokeOpacity="0.12" strokeWidth="1">
-        {Array.from({ length: 9 }).map((_, i) => (
-          <line key={i} x1="0" y1={i * 60} x2="560" y2={i * 60 - 120} />
-        ))}
-      </g>
-      {[170, 250, 330].map((r, i) => (
-        <circle key={i} cx="360" cy="200" r={r} fill="none" stroke="#62aaff" strokeOpacity={0.22 - i * 0.05} strokeWidth="1" />
-      ))}
-      {dots.map((_, i) => {
-        const a = i * 0.62
-        const r = 60 + (i % 6) * 44
-        const x = 360 + Math.cos(a) * r
-        const y = 200 + Math.sin(a) * r * 0.86
-        return <circle key={i} cx={x} cy={y} r={i % 5 === 0 ? 4.5 : 2.4} fill={i % 4 === 0 ? "#a77cff" : "#8fc3ff"} fillOpacity="0.85" />
-      })}
-      <circle cx="360" cy="200" r="18" fill="#0d1621" stroke="#62aaff" strokeOpacity="0.7" />
-      <circle cx="360" cy="200" r="6" fill="#62aaff" />
-    </svg>
-  )
-}
+const PRESENTATION_URL = `${import.meta.env.BASE_URL}GitBuddy-Presentation.html`
 
-/* ---------- Data ---------- */
+/* ---------- Data (ordered: Developer Assistant first) ---------- */
 
 type Project = {
   id: string
   num: string
-  tags: string
+  tags: string[]
   title: string
   short: string
   kicker: string
-  chips: string[]
   story: string
   cover: React.ReactNode
+  link?: string
 }
 
 const projects: Project[] = [
   {
-    id: "persona",
-    num: "01",
-    tags: "LLM · MULTI-AGENT · SIMULATION",
-    title: "Multi-Agent Synthetic Persona Simulation Lab",
-    short: "A multi-agent environment using LLMs to simulate realistic personas, interactions and scenarios.",
-    kicker: "01 · LLM · MULTI-AGENT · SIMULATION",
-    chips: ["LLMs", "Multi-Agent Systems", "Simulation"],
-    story: "A multi-agent environment using LLMs to simulate realistic human personas, interactions and scenarios.",
-    cover: <PersonaCover />,
-  },
-  {
     id: "assistant",
-    num: "02",
-    tags: "LLM · AUTOMATION · GITHUB · N8N",
+    num: "01",
+    tags: ["LLMs", "Automation", "GitHub", "n8n"],
     title: "AI-Powered Developer Assistant",
-    short: "A Telegram bot using n8n, OpenAI and GitHub API to understand requirements and surface open-source solutions.",
-    kicker: "02 · LLM · AUTOMATION · GITHUB · N8N",
-    chips: ["LLMs", "Automation", "GitHub", "n8n"],
-    story: "A Telegram bot using n8n, OpenAI and GitHub API to understand developer requirements and surface the best open-source solutions.",
+    short: "A Telegram bot on n8n, OpenAI and the GitHub API that turns plain-language requirements into vetted open-source recommendations — cutting research time and accelerating delivery.",
+    kicker: "01 · LLM · AUTOMATION · GITHUB · N8N",
+    story: "GitBuddy is a Telegram bot built with n8n, OpenAI and the GitHub API that understands a developer's requirements in natural language and surfaces the best open-source solutions — reducing discovery time and helping teams ship faster.",
     cover: (
       <img
         src="https://images.unsplash.com/photo-1515879218367-8466d910aaa4?w=768&h=480&fit=crop&auto=format"
@@ -158,27 +112,36 @@ const projects: Project[] = [
         loading="lazy"
       />
     ),
+    link: PRESENTATION_URL,
+  },
+  {
+    id: "persona",
+    num: "02",
+    tags: ["LLMs", "Multi-Agent Systems", "Simulation"],
+    title: "Multi-Agent Synthetic Persona Simulation Lab",
+    short: "A multi-agent LLM environment that simulates realistic customer personas and scenarios — a low-cost sandbox for market research, user testing and go-to-market decisions.",
+    kicker: "02 · LLM · MULTI-AGENT · SIMULATION",
+    story: "A multi-agent environment that uses LLMs to simulate realistic human personas, interactions and scenarios — giving teams a fast, low-cost way to pressure-test products, messaging and strategy before investing in real-world research.",
+    cover: <PersonaCover />,
   },
   {
     id: "note",
     num: "03",
-    tags: "PYTHON · SQL · SIGNAL PROCESSING",
+    tags: ["Python", "SQL", "Signal Processing"],
     title: "Note Detective",
-    short: "Audio fingerprinting in Python and SQL for accurate song recognition and scalable data retrieval.",
+    short: "An audio-fingerprinting system in Python and SQL for accurate song recognition at scale — engineered for fast, reliable retrieval across large catalogs.",
     kicker: "03 · PYTHON · SQL · SIGNAL PROCESSING",
-    chips: ["Python", "SQL", "Signal Processing"],
-    story: "Designed and deployed an audio fingerprinting system with Python and SQL that enabled accurate song recognition and scalable data retrieval.",
+    story: "Designed and deployed an audio-fingerprinting system with Python and SQL that enabled accurate song recognition and scalable data retrieval — turning a hard signal-processing problem into a dependable, queryable service.",
     cover: <NoteCover />,
   },
   {
     id: "blockchain",
     num: "04",
-    tags: "BLOCKCHAIN · SMART CONTRACTS · WEB3",
+    tags: ["Blockchain", "Smart Contracts", "Web3"],
     title: "Blockchain Smart Contract Solution",
-    short: "A decentralized solution using smart contracts to enable secure, transparent and automated transactions.",
+    short: "A decentralized smart-contract solution for secure, transparent and automated transactions — reducing intermediaries, cost and settlement risk.",
     kicker: "04 · BLOCKCHAIN · SMART CONTRACTS · WEB3",
-    chips: ["Blockchain", "Smart Contracts", "Web3"],
-    story: "A decentralized solution using smart contracts to enable secure, transparent and automated transactions.",
+    story: "A decentralized solution using smart contracts to enable secure, transparent and automated transactions — cutting out intermediaries and lowering the cost and risk of settlement.",
     cover: <BlockchainCover />,
   },
 ]
@@ -210,6 +173,14 @@ export default function App() {
     }
   }, [active])
 
+  const openProject = (p: Project) => {
+    if (p.link) {
+      window.open(p.link, "_blank", "noopener")
+    } else {
+      setActive(p)
+    }
+  }
+
   return (
     <div className="page">
       <header className="nav">
@@ -230,16 +201,18 @@ export default function App() {
             <h1>ARPAN<br />BOSE<span>.</span></h1>
             <div className="slogan">I build things at the intersection<br />of data, AI and real-world impact.</div>
             <div className="desc">
-              From machine learning models to multi-agent systems,<br />
-              I enjoy turning complex problems into simple, useful solutions.
+              From machine learning models to multi-agent systems, I turn complex,
+              data-heavy problems into simple products that drive real business outcomes.
             </div>
             <div className="cta-row">
               <a className="cta" href="#work">Explore my work&nbsp; →</a>
-              <span className="note">Curious mind.<br />Always building.</span>
             </div>
           </div>
           <div className="hero-art">
-            <HeroCover />
+            <img
+              src="https://images.unsplash.com/photo-1785723093791-44447004e6bd?w=1400&h=1100&fit=crop&auto=format"
+              alt="A person looking out over a city skyline across water at sunset"
+            />
             <div className="hand one">Building a<br />more interesting<br />tomorrow. ↗</div>
             <div className="hand two">Curious mind.<br />Analytical thinking.<br />Real-world impact.<br />Always building.</div>
             <div className="rail"><b>01</b><span>02</span><span>03</span><span>04</span><span>05</span></div>
@@ -251,24 +224,26 @@ export default function App() {
           <div className="work-head">
             <div className="eyebrow">SELECTED WORK</div>
             <div style={{ display: "flex", alignItems: "center" }}>
-              <p>A mix of AI, data, software and curiosity.</p>
+              <p>A mix of AI, data, software and business curiosity.</p>
               <div className="arrows"><span className="circle">←</span><span className="circle">→</span></div>
             </div>
           </div>
           <div className="projects">
             {projects.map((p) => (
-              <article className="card" key={p.id} onClick={() => setActive(p)}>
+              <article className="card" key={p.id} onClick={() => openProject(p)}>
                 <div className="card-art">
                   {p.cover}
                   <span className="num">{p.num}</span>
-                  <span className="tags">{p.tags}</span>
                 </div>
                 <div className="card-info">
-                  <div>
+                  <div className="card-info-head">
                     <h2>{p.title}</h2>
-                    <p>{p.short}</p>
+                    <span className="go" aria-label="Open project"><ArrowIcon /></span>
                   </div>
-                  <span className="go" aria-label="Open project"><ArrowIcon /></span>
+                  <p>{p.short}</p>
+                  <div className="chips card-chips">
+                    {p.tags.map((t) => <span className="chip" key={t}>{t}</span>)}
+                  </div>
                 </div>
               </article>
             ))}
@@ -276,13 +251,19 @@ export default function App() {
         </section>
 
         <section id="experience" className="experience">
-          <div className="exp-title">
-            <div className="eyebrow">BEYOND PROJECTS</div>
-            <h2>Real-world<br />experience.</h2>
+          <div className="exp-banner">
+            <img
+              src="https://images.unsplash.com/photo-1567789884554-0b844b597180?w=900&h=700&fit=crop&auto=format"
+              alt="Vehicle being assembled by robotic machines inside an automotive factory"
+              loading="lazy"
+            />
+            <span className="eyebrow">BEYOND PROJECTS</span>
           </div>
           <div className="exp-copy">
             <strong>Ashok Leyland · Summer Internship</strong><br />
-            Computer vision and ML solutions to improve defect prevention, inspection efficiency and digital information retrieval.<br />
+            Built computer-vision and ML solutions that improved defect prevention, inspection
+            efficiency and digital information retrieval — reducing manual effort and raising
+            quality on the manufacturing line.<br />
             <a href="#">View experience&nbsp; →</a>
           </div>
           <div className="exp-side" id="contact">
@@ -326,7 +307,7 @@ export default function App() {
               <div>
                 <h3>TOOLS / THEMES</h3>
                 <div className="chips">
-                  {active.chips.map((c) => <span className="chip" key={c}>{c}</span>)}
+                  {active.tags.map((c) => <span className="chip" key={c}>{c}</span>)}
                 </div>
               </div>
               <div>

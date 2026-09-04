@@ -46,13 +46,17 @@ html:hover ::-webkit-scrollbar-thumb,*:hover::-webkit-scrollbar-thumb{background
 .cta-row{display:flex;align-items:center;gap:18px;margin-top:22px}
 .cta{border:1px solid #8a929a;border-radius:999px;padding:10px 18px;font-size:11px;transition:.2s}
 .cta:hover{background:#fff;color:#05080b;border-color:#fff}
-.note{font:17px/1.05 "Caveat",cursive;color:#d6d0c7;transform:rotate(-4deg)}
 
-.hero-art{position:relative;overflow:hidden;background:#0b1219;min-height:340px}
+/* full-bleed hero art: extends to the right/top screen edge and feathers into the
+   background so it doesn't look boxed off by hard invisible edges */
+.hero-art{position:relative;overflow:hidden;background:#0b1219;min-height:340px;
+  -webkit-mask-image:radial-gradient(140% 155% at 80% 42%,#000 56%,transparent 97%);
+  mask-image:radial-gradient(140% 155% at 80% 42%,#000 56%,transparent 97%)}
 .hero-art .cover-svg,.hero-art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
 .hero-art:before{content:"";position:absolute;inset:0;z-index:1;background:
-  linear-gradient(90deg,rgba(5,8,11,.92) 0%,rgba(5,8,11,.4) 26%,rgba(5,8,11,.04) 58%,rgba(5,8,11,.24) 100%),
-  radial-gradient(circle at 72% 43%,rgba(98,170,255,.12),transparent 30%);}
+  linear-gradient(90deg,rgba(5,8,11,.85) 0%,rgba(5,8,11,.32) 24%,rgba(5,8,11,0) 52%),
+  linear-gradient(0deg,rgba(5,8,11,.55) 0%,rgba(5,8,11,0) 34%),
+  radial-gradient(circle at 72% 43%,rgba(98,170,255,.1),transparent 32%);}
 .hand{position:absolute;z-index:2;font:18px/1.05 "Caveat",cursive;color:#ddd7ce}
 .hand.one{right:3%;top:7%;transform:rotate(-5deg)}
 .hand.two{right:9%;top:33%;transform:rotate(-4deg)}
@@ -76,23 +80,25 @@ html:hover ::-webkit-scrollbar-thumb,*:hover::-webkit-scrollbar-thumb{background
 .card-art .cover-svg,.card-art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
 .card-art:after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(5,8,11,.25),transparent 30%,transparent 62%,rgba(5,8,11,.55))}
 .card:hover .card-art{border-color:#33414d}
-.num,.tags{position:absolute;z-index:2;top:11px;font:9px "DM Mono";color:#eef1f3}
-.num{left:13px;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.num{position:absolute;z-index:2;top:11px;left:13px;font:9px "DM Mono";color:#eef1f3;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
 .num:after{content:"";width:17px;height:1px;background:#d9e0e6;display:block;opacity:.75}
-.tags{right:13px;color:#d2d8de;text-align:right;letter-spacing:.07em;background:rgba(7,10,13,.62);border:1px solid rgba(255,255,255,.12);padding:5px 7px;border-radius:3px;backdrop-filter:blur(5px)}
-.card-info{padding:13px 4px 4px;display:grid;grid-template-columns:1fr 38px;gap:10px}
-.card h2{font-size:16px;line-height:1.08;letter-spacing:-.045em;margin:0 0 7px;font-weight:700}
-.card p{font-size:10.5px;line-height:1.4;color:#9aa2aa;margin:0;max-width:300px}
-.go{width:35px;height:35px;border:1px solid #7a838b;border-radius:50%;display:grid;place-items:center;align-self:center;color:#f4f4f1;transition:.25s}
+.card-info{padding:13px 4px 4px;display:flex;flex-direction:column;gap:9px}
+.card-info-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.card h2{font-size:16px;line-height:1.08;letter-spacing:-.045em;margin:0;font-weight:700}
+.card p{font-size:10.5px;line-height:1.42;color:#9aa2aa;margin:0}
+.card-chips{margin-top:auto;padding-top:2px}
+.go{width:35px;height:35px;flex:0 0 auto;border:1px solid #7a838b;border-radius:50%;display:grid;place-items:center;color:#f4f4f1;transition:.25s}
 .go svg{width:15px;height:15px;display:block}
 .card:hover .go{background:#f3f2ed;color:#05080b;border-color:#f3f2ed;transform:translateX(2px)}
 
-.experience{display:grid;grid-template-columns:29% 39% 32%;align-items:center;gap:0;border-bottom:1px solid var(--line);padding:48px 0}
-.exp-title{padding-left:10px}
-.exp-title h2{font-size:27px;line-height:.9;letter-spacing:-.055em;margin:7px 0 0}
-.exp-copy{padding:0 24px;font-size:11px;line-height:1.55;color:#8f98a2}
-.exp-copy strong{color:#eeeae4;font-size:12px}
-.exp-copy a{display:inline-block;color:var(--blue);margin-top:6px}
+.experience{display:grid;grid-template-columns:26% 38% 36%;align-items:stretch;gap:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);min-height:190px}
+.exp-banner{position:relative;overflow:hidden;background:#0b1219}
+.exp-banner img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(.85)}
+.exp-banner:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(5,8,11,.35),rgba(5,8,11,.55) 70%,var(--bg))}
+.exp-banner .eyebrow{position:absolute;z-index:2;left:16px;top:16px}
+.exp-copy{padding:26px 28px;font-size:11px;line-height:1.6;color:#8f98a2;display:flex;flex-direction:column;justify-content:center}
+.exp-copy strong{color:#eeeae4;font-size:13px;display:inline-block;margin-bottom:6px}
+.exp-copy a{display:inline-block;color:var(--blue);margin-top:8px}
 .exp-side{border-left:1px solid var(--line);min-height:120px;display:flex;align-items:center;justify-content:space-around;padding:0 8px;gap:16px}
 .exp-note{font:21px/1.05 "Caveat",cursive;color:#bdb8b1;transform:rotate(-6deg)}
 .connect{font:8px "DM Mono";letter-spacing:.15em;color:#737d87;text-align:left}
@@ -120,7 +126,9 @@ footer{display:flex;align-items:center;justify-content:space-between;gap:16px;fl
 .modal-body h3{font:8px "DM Mono";letter-spacing:.15em;color:#6ba9df;margin:0 0 10px}
 .modal-body p{font-size:12px;line-height:1.6;color:#969fa8;margin:0}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{border:1px solid #29333c;border-radius:3px;padding:5px 7px;font:8px "DM Mono";color:#9aa6b0}
+.chip{border:1px solid #2b333c;border-radius:999px;padding:4px 10px;font:8.5px "DM Mono";letter-spacing:.02em;color:#9aa6b0;background:rgba(255,255,255,.02)}
+.card-chips .chip{transition:.2s}
+.card:hover .card-chips .chip{border-color:#38434e;color:#c3cbd3}
 
 @media(max-width:1050px){
   .page{width:calc(100% - 40px)}
@@ -131,7 +139,7 @@ footer{display:flex;align-items:center;justify-content:space-between;gap:16px;fl
 @media(max-width:720px){
   .nav{grid-template-columns:1fr auto}.links{display:none}
   .hero{grid-template-columns:1fr}.hero-copy{padding:40px 5px}.hero-art{min-height:320px}
-  .experience{grid-template-columns:1fr;gap:22px}.exp-side{border:0;border-top:1px solid var(--line);padding-top:22px}.exp-copy{padding:0}
+  .experience{grid-template-columns:1fr}.exp-banner{min-height:150px}.exp-side{border:0;border-top:1px solid var(--line);padding:22px 24px}.exp-copy{padding:24px}
   .footer-right{gap:12px}
 }
 @media(max-width:470px){.projects{grid-template-columns:1fr}.hero h1{font-size:64px}.modal-body{grid-template-columns:1fr;gap:20px}}

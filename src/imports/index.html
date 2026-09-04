@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Arpan Bose — Portfolio</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Caveat:wght@400;500&display=swap');
+:root{
+  --bg:#05080b; --panel:#0a0f15; --panel2:#0d141b; --text:#f3f1eb;
+  --muted:#8f99a4; --line:#20272e; --blue:#62aaff; --max:1430px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;background:var(--bg);color:var(--text)}
+body{font-family:Manrope,Arial,sans-serif;overflow:hidden}
+a{color:inherit;text-decoration:none}
+button{font:inherit}
+.page{width:min(var(--max),calc(100% - 64px));height:100vh;margin:auto;display:grid;grid-template-rows:52px minmax(0,1fr) 60px}
+.nav{height:52px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;border-bottom:1px solid transparent}
+.logo{font-size:23px;font-weight:800;letter-spacing:-.09em}
+.logo b{color:var(--blue)}
+.links{display:flex;gap:43px;font:500 13px "Caveat",cursive;align-items:center}
+.links a{position:relative;color:#e7e5df}
+.links a:first-child:after{content:"";position:absolute;left:0;right:0;bottom:-9px;height:1px;background:#5d93c9}
+.talk{justify-self:end;border:1px solid #39424b;border-radius:999px;padding:8px 15px;font-size:11px}
+.talk:hover{background:#f4f3ef;color:#05080b}
+
+.main{min-height:0;display:grid;grid-template-rows:43% 42% 15%;overflow:hidden}
+.hero{min-height:0;display:grid;grid-template-columns:34% 66%;border-bottom:1px solid var(--line)}
+.hero-copy{padding:20px 30px 16px 10px;display:flex;flex-direction:column;justify-content:center}
+.hello{font:500 25px/1 "Caveat",cursive;margin-bottom:5px;color:#ece8e0}
+.hero h1{font-family:"Archivo Black",Manrope,sans-serif;font-size:clamp(58px,6.1vw,88px);line-height:.78;letter-spacing:-.055em;margin:0 0 15px;font-weight:900;text-transform:uppercase}
+.hero h1 span{color:#eeeae3}
+.slogan{font:500 clamp(21px,1.8vw,28px)/.99 "Caveat",cursive;max-width:490px;color:#eeeae4;position:relative}
+.slogan:after{content:"";display:block;width:82px;border-top:2px solid var(--blue);margin-top:7px;transform:rotate(-4deg)}
+.desc{font-size:12px;line-height:1.35;color:#a0a8b0;max-width:500px;margin-top:8px}
+.cta-row{display:flex;align-items:center;gap:18px;margin-top:15px}
+.cta{border:1px solid #8a929a;border-radius:999px;padding:9px 16px;font-size:11px}
+.cta:hover{background:#fff;color:#05080b}
+.note{font:16px/1 "Caveat",cursive;color:#d6d0c7;transform:rotate(-4deg)}
+
+.hero-art{position:relative;overflow:hidden;background:#0b1219}
+.art-placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#28323b;font:10px "DM Mono";letter-spacing:.18em}
+.hero-art:before{content:"";position:absolute;inset:0;background:
+linear-gradient(90deg,rgba(5,8,11,.88) 0%,rgba(5,8,11,.35) 25%,rgba(5,8,11,.05) 55%,rgba(5,8,11,.2) 100%),
+radial-gradient(circle at 72% 43%,rgba(98,170,255,.10),transparent 27%);
+}
+.hand{position:absolute;z-index:2;font:18px/1.03 "Caveat",cursive;color:#ddd7ce}
+.hand.one{right:3%;top:6%;transform:rotate(-5deg)}
+.hand.two{right:10%;top:31%;transform:rotate(-4deg)}
+.rail{position:absolute;z-index:3;right:1.2%;top:36%;height:48%;border-left:1px solid #35414b;padding-left:10px;display:flex;flex-direction:column;justify-content:space-between;font:9px "DM Mono";color:#687580}
+.rail b{color:#f2f0eb;position:relative}
+.rail b:before{content:"";position:absolute;width:5px;height:5px;border-radius:50%;background:var(--blue);left:-13px;top:2px}
+.location{position:absolute;right:2%;bottom:8%;z-index:2;font:8px "DM Mono";letter-spacing:.13em;color:#8a949e}
+.location i{display:inline-block;width:5px;height:5px;background:var(--blue);border-radius:50%;margin-right:6px}
+
+.work{min-height:0;padding:14px 0 10px;border-bottom:1px solid var(--line)}
+.work-head{height:31px;display:flex;align-items:flex-start;justify-content:space-between}
+.eyebrow{font:9px "DM Mono";letter-spacing:.23em;color:#69a6dd}
+.work-head p{font-size:11px;color:#737e88;margin:2px 0}
+.arrows{display:flex;gap:8px;margin-left:14px}
+.circle{width:30px;height:30px;border:1px solid #3b444c;border-radius:50%;display:grid;place-items:center;color:#d9dce0;font-size:14px}
+.projects{height:calc(100% - 31px);display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.card{min-width:0;display:grid;grid-template-rows:minmax(0,1fr) auto;overflow:hidden;background:transparent;cursor:pointer;transition:.25s}
+.card:hover{transform:translateY(-3px)}
+.card-art{position:relative;min-height:0;background:#0b131b;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.card-art .blank{font:8px "DM Mono";letter-spacing:.16em;color:#27323c}
+.card-art:after{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(98,170,255,.06),transparent 45%,rgba(167,124,255,.035))}
+.num,.tags{position:absolute;z-index:2;top:11px;font:9px "DM Mono";color:#eef1f3}
+.num{left:13px;display:flex;flex-direction:column;gap:6px;align-items:flex-start}.num:after{content:"";width:17px;height:1px;background:#d9e0e6;display:block;opacity:.75}.tags{right:13px;color:#d2d8de;text-align:right;letter-spacing:.07em;background:rgba(7,10,13,.62);border:1px solid rgba(255,255,255,.12);padding:5px 7px;border-radius:3px;backdrop-filter:blur(5px)}
+.card-info{height:92px;padding:10px 13px 11px 13px;display:grid;grid-template-columns:1fr 38px;gap:10px;background:transparent}
+.card h2{font-size:16px;line-height:1.04;letter-spacing:-.045em;margin:0 0 6px;font-weight:700}
+.card p{font-size:10px;line-height:1.34;color:#9aa2aa;margin:0;max-width:300px}
+.go{width:35px;height:35px;border:1px solid #7a838b;border-radius:50%;display:grid;place-items:center;align-self:center;font-size:0;color:#f4f4f1;transition:.25s}.go svg{width:15px;height:15px;display:block}
+.card:hover .go{background:#f3f2ed;color:#05080b;border-color:#f3f2ed;transform:translateX(2px)}
+
+.experience{min-height:0;display:grid;grid-template-columns:29% 39% 32%;align-items:center;border-bottom:1px solid var(--line)}
+.exp-title{padding-left:10px}.exp-title h2{font-size:25px;line-height:.86;letter-spacing:-.055em;margin:5px 0 0}
+.exp-copy{padding:0 20px;font-size:10px;line-height:1.4;color:#8f98a2}
+.exp-copy strong{color:#eeeae4;font-size:11px}
+.exp-copy a{display:inline-block;color:var(--blue);margin-top:3px}
+.exp-side{border-left:1px solid var(--line);height:65%;display:flex;align-items:center;justify-content:space-around;padding:0 5px}
+.exp-note{font:20px/1 "Caveat",cursive;color:#bdb8b1;transform:rotate(-6deg)}
+.connect{font:8px "DM Mono";letter-spacing:.15em;color:#737d87;text-align:left}
+.socials{display:flex;gap:13px;margin-top:8px;font:10px Manrope;color:#ddd}.socials a{display:inline-flex;align-items:center;gap:6px}.socials svg{width:14px;height:14px;fill:currentColor;stroke:currentColor}
+.socials a:hover{color:var(--blue)}
+
+footer{display:flex;align-items:center;justify-content:space-between;font:9px "DM Mono";color:#69747e}
+.footer-logo{font:21px Manrope;font-weight:800;letter-spacing:-.08em;color:#eee}
+.footer-logo b{color:var(--blue)}
+.footer-right{display:flex;gap:25px}
+.dot{color:var(--blue)}
+
+.modal{position:fixed;inset:0;z-index:100;background:rgba(2,4,6,.88);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;padding:30px}
+.modal.open{display:flex}
+.modal-box{width:min(900px,100%);background:#0a1016;border:1px solid #35404a;border-radius:13px;overflow:hidden}
+.modal-top{padding:18px 22px;display:flex;justify-content:space-between;border-bottom:1px solid var(--line)}
+.modal-kicker{font:8px "DM Mono";color:#68a6dc;letter-spacing:.14em}
+.modal-title{font-size:27px;letter-spacing:-.05em;margin-top:5px}
+.close{width:32px;height:32px;border-radius:50%;border:1px solid #3b4650;background:none;color:white;cursor:pointer}
+.modal-art{height:320px;background:#0b131b;display:grid;place-items:center;color:#2d3842;font:9px "DM Mono";letter-spacing:.18em}
+.modal-body{padding:18px 22px;display:grid;grid-template-columns:1fr 2fr;gap:35px}
+.modal-body h3{font:8px "DM Mono";letter-spacing:.15em;color:#6ba9df}
+.modal-body p{font-size:11px;line-height:1.55;color:#969fa8}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chip{border:1px solid #29333c;border-radius:3px;padding:5px 7px;font:8px "DM Mono";color:#9aa6b0}
+
+@media(max-width:1050px){
+  .page{width:calc(100% - 30px)}
+  .main{grid-template-rows:42% 43% 15%}
+  .hero{grid-template-columns:39% 61%}.links{gap:25px}
+  .card-info{height:100px}.card h2{font-size:14px}
+  .hero h1{font-size:57px}.hand{font-size:15px}
+}
+@media(max-width:720px){
+  body{overflow:auto}.page{height:auto;min-height:100vh;display:block}
+  .nav{height:58px;grid-template-columns:1fr auto}.links{display:none}
+  .main{display:block;overflow:visible}.hero{grid-template-columns:1fr}.hero-copy{min-height:330px;padding:30px 5px}.hero-art{height:330px}
+  .work{padding:25px 0}.projects{grid-template-columns:1fr 1fr;height:auto;gap:10px}.card-art{height:190px}.card-info{height:auto;min-height:100px}
+  .experience{display:block;padding:25px 0}.exp-side{border:0;border-top:1px solid var(--line);margin-top:18px;padding-top:18px}.exp-copy{padding:15px 0}
+  footer{height:70px}.footer-right{gap:10px}
+}
+@media(max-width:470px){.projects{grid-template-columns:1fr}.hero h1{font-size:64px}.card-art{height:210px}.modal-body{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="page">
+<header class="nav">
+  <a class="logo" href="#">AB<span>.</span></a>
+  <nav class="links"><a href="#work">Work</a><a href="#experience">About</a><a href="#experience">Experience</a><a href="#contact">Contact</a></nav>
+  <a class="talk" href="#contact">Let's Talk ↗</a>
+</header>
+
+<main class="main">
+<section class="hero">
+  <div class="hero-copy">
+    <div class="hello">Hi, I'm</div>
+    <h1>ARPAN<br>BOSE<span>.</span></h1>
+    <div class="slogan">I build things at the intersection<br>of data, AI and real-world impact.</div>
+    <div class="desc">From machine learning models to multi-agent systems,<br>I enjoy turning complex problems into simple, useful solutions.</div>
+    <div class="cta-row"><a class="cta" href="#work">Explore my work&nbsp; →</a><span class="note">Curious mind.<br>Always building.</span></div>
+  </div>
+  <div class="hero-art">
+    <div class="art-placeholder">HERO ARTWORK · ADD IMAGE HERE</div>
+    <div class="hand one">Building a<br>more interesting<br>tomorrow. ↗</div>
+    <div class="hand two">Curious mind.<br>Analytical thinking.<br>Real-world impact.<br>Always building.</div>
+    <div class="rail"><b>01</b><span>02</span><span>03</span><span>04</span><span>05</span></div>
+    <div class="location"><i></i>BASED IN INDIA</div>
+  </div>
+</section>
+
+<section id="work" class="work">
+  <div class="work-head">
+    <div class="eyebrow">SELECTED WORK</div>
+    <div style="display:flex;align-items:center"><p>A mix of AI, data, software and curiosity.</p><div class="arrows"><span class="circle">←</span><span class="circle">→</span></div></div>
+  </div>
+  <div class="projects">
+    <article class="card" data-id="persona">
+      <div class="card-art"><span class="num">01</span><span class="tags">LLM · MULTI-AGENT · SIMULATION</span><span class="blank">PROJECT ART · 16:9</span></div>
+      <div class="card-info"><div><h2>Multi-Agent Synthetic Persona Simulation Lab</h2><p>A multi-agent environment using LLMs to simulate realistic personas, interactions and scenarios.</p></div><span class="go" aria-label="Open project"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13"/><path d="m13 6 6 6-6 6"/></svg></span></div>
+    </article>
+    <article class="card" data-id="assistant">
+      <div class="card-art"><span class="num">02</span><span class="tags">LLM · AUTOMATION · GITHUB · N8N</span><span class="blank">PROJECT ART · 16:9</span></div>
+      <div class="card-info"><div><h2>AI-Powered Developer Assistant</h2><p>A Telegram bot using n8n, OpenAI and GitHub API to understand requirements and surface open-source solutions.</p></div><span class="go" aria-label="Open project"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13"/><path d="m13 6 6 6-6 6"/></svg></span></div>
+    </article>
+    <article class="card" data-id="note">
+      <div class="card-art"><span class="num">03</span><span class="tags">PYTHON · SQL · SIGNAL PROCESSING</span><span class="blank">PROJECT ART · 16:9</span></div>
+      <div class="card-info"><div><h2>Note Detective</h2><p>Audio fingerprinting in Python and SQL for accurate song recognition and scalable data retrieval.</p></div><span class="go" aria-label="Open project"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13"/><path d="m13 6 6 6-6 6"/></svg></span></div>
+    </article>
+    <article class="card" data-id="blockchain">
+      <div class="card-art"><span class="num">04</span><span class="tags">BLOCKCHAIN · SMART CONTRACTS · WEB3</span><span class="blank">PROJECT ART · 16:9</span></div>
+      <div class="card-info"><div><h2>Blockchain Smart Contract Solution</h2><p>A decentralized solution using smart contracts to enable secure, transparent and automated transactions.</p></div><span class="go" aria-label="Open project"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13"/><path d="m13 6 6 6-6 6"/></svg></span></div>
+    </article>
+  </div>
+</section>
+
+<section id="experience" class="experience">
+  <div class="exp-title"><div class="eyebrow">BEYOND PROJECTS</div><h2>Real-world<br>experience.</h2></div>
+  <div class="exp-copy"><strong>Ashok Leyland · Summer Internship</strong><br>Computer vision and ML solutions to improve defect prevention, inspection efficiency and digital information retrieval.<br><a href="#">View experience&nbsp; →</a></div>
+  <div class="exp-side" id="contact"><div class="exp-note">Same ideas.<br>Bigger impact.</div><div class="connect">LET'S CONNECT<div class="socials"><a href="https://www.linkedin.com/" target="_blank" aria-label="LinkedIn"><svg viewBox="0 0 24 24"><path d="M5.2 8.1H2.1V21h3.1V8.1ZM3.65 3A1.82 1.82 0 1 0 3.65 6.64 1.82 1.82 0 0 0 3.65 3ZM8.55 8.1h3v1.76h.04c.42-.8 1.45-2.06 3.64-2.06 3.89 0 4.61 2.56 4.61 5.89V21h-3.1v-6.47c0-1.54-.03-3.52-2.14-3.52-2.14 0-2.47 1.67-2.47 3.41V21h-3.1V8.1Z"/></svg>LinkedIn</a><a href="https://github.com/" target="_blank" aria-label="GitHub"><svg viewBox="0 0 24 24"><path d="M12 .8a11.2 11.2 0 0 0-3.54 21.83c.56.1.77-.24.77-.54v-2.1c-3.13.68-3.79-1.33-3.79-1.33-.51-1.3-1.25-1.65-1.25-1.65-1.02-.7.08-.69.08-.69 1.13.08 1.73 1.16 1.73 1.16 1 1.72 2.63 1.22 3.27.93.1-.72.39-1.22.71-1.5-2.5-.29-5.13-1.25-5.13-5.57 0-1.23.44-2.23 1.16-3.02-.12-.29-.5-1.43.11-2.98 0 0 .95-.3 3.08 1.15a10.7 10.7 0 0 1 5.61 0c2.13-1.45 3.08-1.15 3.08-1.15.61 1.55.23 2.69.11 2.98.72.79 1.16 1.79 1.16 3.02 0 4.33-2.64 5.27-5.15 5.56.4.35.75 1.03.75 2.08v3.08c0 .3.2.65.78.54A11.2 11.2 0 0 0 12 .8Z"/></svg>GitHub</a><a href="mailto:your.email@example.com" aria-label="Email"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></svg>Email</a></div></div></div>
+</section>
+</main>
+
+<footer>
+  <span class="footer-logo">AB<span>.</span></span>
+  <span>© 2026 Arpan Bose. All rights reserved.</span>
+  <span>Built with curiosity <span class="dot">●</span></span>
+</footer>
+</div>
+
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <div class="modal-top"><div><div class="modal-kicker" id="mk"></div><div class="modal-title" id="mt"></div></div><button class="close" id="mc">×</button></div>
+    <div class="modal-art">PROJECT ARTWORK PLACEHOLDER · ADD YOUR IMAGE HERE</div>
+    <div class="modal-body"><div><h3>TOOLS / THEMES</h3><div class="chips" id="chips"></div></div><div><h3>THE STORY</h3><p id="md"></p></div></div>
+  </div>
+</div>
+
+<script>
+const projects={
+persona:{k:"01 · LLM · MULTI-AGENT · SIMULATION",t:"Multi-Agent Synthetic Persona Simulation Lab",c:["LLMs","Multi-Agent Systems","Simulation"],d:"A multi-agent environment using LLMs to simulate realistic human personas, interactions and scenarios."},
+assistant:{k:"02 · LLM · AUTOMATION · GITHUB · N8N",t:"AI-Powered Developer Assistant",c:["LLMs","Automation","GitHub","n8n"],d:"A Telegram bot using n8n, OpenAI and GitHub API to understand developer requirements and surface the best open-source solutions."},
+note:{k:"03 · PYTHON · SQL · SIGNAL PROCESSING",t:"Note Detective",c:["Python","SQL","Signal Processing"],d:"Designed and deployed an audio fingerprinting system with Python and SQL that enabled accurate song recognition and scalable data retrieval."},
+blockchain:{k:"04 · BLOCKCHAIN · SMART CONTRACTS · WEB3",t:"Blockchain Smart Contract Solution",c:["Blockchain","Smart Contracts","Web3"],d:"A decentralized solution using smart contracts to enable secure, transparent and automated transactions."}
+};
+const modal=document.getElementById("modal"),mk=document.getElementById("mk"),mt=document.getElementById("mt"),chips=document.getElementById("chips"),md=document.getElementById("md");
+document.querySelectorAll(".card").forEach(card=>card.onclick=()=>{const p=projects[card.dataset.id];mk.textContent=p.k;mt.textContent=p.t;md.textContent=p.d;chips.innerHTML=p.c.map(x=>`<span class="chip">${x}</span>`).join("");modal.classList.add("open");});
+document.getElementById("mc").onclick=()=>modal.classList.remove("open");
+modal.onclick=e=>{if(e.target===modal)modal.classList.remove("open")};
+document.onkeydown=e=>{if(e.key==="Escape")modal.classList.remove("open")};
+</script>
+</body>
+</html>

@@ -1,86 +1,83 @@
 import { useEffect, useState } from "react"
-
-/* ---------- Generative SVG covers ---------- */
-
-function PersonaCover() {
-  const nodes = [
-    [78, 60], [188, 44], [300, 82], [128, 128], [232, 132],
-    [56, 176], [176, 196], [286, 178], [340, 118], [120, 60],
-  ]
-  const edges = [
-    [0, 1], [1, 2], [0, 3], [3, 4], [1, 4], [3, 5], [4, 6],
-    [6, 7], [2, 8], [4, 7], [3, 6], [1, 9], [7, 8],
-  ]
-  return (
-    <svg className="cover-svg" viewBox="0 0 384 240" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-      <rect width="384" height="240" fill="#080e15" />
-      <g stroke="#62aaff" strokeOpacity="0.28" strokeWidth="1">
-        {edges.map(([a, b], i) => (
-          <line key={i} x1={nodes[a][0]} y1={nodes[a][1]} x2={nodes[b][0]} y2={nodes[b][1]} />
-        ))}
-      </g>
-      {nodes.map(([x, y], i) => (
-        <g key={i}>
-          <circle cx={x} cy={y} r={i % 3 === 0 ? 15 : 10} fill="#0d1621" stroke="#3a5a82" />
-          <circle cx={x} cy={y - 3} r={i % 3 === 0 ? 5 : 3.5} fill={i % 4 === 0 ? "#a77cff" : "#62aaff"} fillOpacity="0.9" />
-          <rect x={x - (i % 3 === 0 ? 7 : 5)} y={y + 2} width={i % 3 === 0 ? 14 : 10} height="4" rx="2" fill="#62aaff" fillOpacity="0.35" />
-        </g>
-      ))}
-    </svg>
-  )
-}
-
-function NoteCover() {
-  const bars = Array.from({ length: 46 })
-  const peaks = [[60, 70], [104, 52], [150, 96], [206, 60], [250, 108], [300, 74], [338, 120]]
-  return (
-    <svg className="cover-svg" viewBox="0 0 384 240" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-      <rect width="384" height="240" fill="#080e15" />
-      <g>
-        {bars.map((_, i) => {
-          const h = 20 + Math.abs(Math.sin(i * 0.9) * Math.cos(i * 0.4)) * 150
-          return (
-            <rect key={i} x={8 + i * 8.2} y={(240 - h) / 2} width="4.4" height={h} rx="2"
-              fill={i % 5 === 0 ? "#a77cff" : "#62aaff"} fillOpacity={0.18 + (i % 5 === 0 ? 0.4 : 0.22)} />
-          )
-        })}
-      </g>
-      <g stroke="#eef1f3" strokeOpacity="0.5" strokeWidth="1">
-        {peaks.slice(0, -1).map((p, i) => (
-          <line key={i} x1={p[0]} y1={p[1]} x2={peaks[i + 1][0]} y2={peaks[i + 1][1]} strokeDasharray="2 3" />
-        ))}
-      </g>
-      {peaks.map(([x, y], i) => (
-        <circle key={i} cx={x} cy={y} r="3.4" fill="#f3f1eb" />
-      ))}
-    </svg>
-  )
-}
-
-function BlockchainCover() {
-  const blocks = [[40, 96], [130, 60], [130, 140], [220, 96], [310, 60], [310, 140]]
-  const links = [[0, 1], [0, 2], [1, 3], [2, 3], [3, 4], [3, 5]]
-  return (
-    <svg className="cover-svg" viewBox="0 0 384 240" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-      <rect width="384" height="240" fill="#080e15" />
-      <g stroke="#62aaff" strokeOpacity="0.35" strokeWidth="1.4">
-        {links.map(([a, b], i) => (
-          <line key={i} x1={blocks[a][0] + 17} y1={blocks[a][1] + 17} x2={blocks[b][0] + 17} y2={blocks[b][1] + 17} />
-        ))}
-      </g>
-      {blocks.map(([x, y], i) => (
-        <g key={i} transform={`translate(${x} ${y})`}>
-          <rect width="34" height="34" rx="6" fill="#0e1a26" stroke={i % 2 ? "#a77cff" : "#3a5a82"} strokeWidth="1.4" />
-          <rect x="7" y="9" width="20" height="2.6" rx="1.3" fill="#62aaff" fillOpacity="0.7" />
-          <rect x="7" y="15" width="14" height="2.6" rx="1.3" fill="#62aaff" fillOpacity="0.4" />
-          <rect x="7" y="21" width="17" height="2.6" rx="1.3" fill="#62aaff" fillOpacity="0.4" />
-        </g>
-      ))}
-    </svg>
-  )
-}
+import heroImg from "./imports/file_0000000079207207bb1e293b79bba92f.png"
 
 const PRESENTATION_URL = `${import.meta.env.BASE_URL}GitBuddy-Presentation.html`
+
+/** Rounded chip holding a 24-unit brand glyph, centered at (cx,cy). */
+function LogoChip({ cx, cy, children }: { cx: number; cy: number; children: React.ReactNode }) {
+  const s = 66
+  return (
+    <g>
+      <rect x={cx - s / 2} y={cy - s / 2} width={s} height={s} rx="16"
+        fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.14)" />
+      <g transform={`translate(${cx - 12 * 1.55} ${cy - 12 * 1.55}) scale(1.55)`}>{children}</g>
+    </g>
+  )
+}
+
+function AssistantCover() {
+  return (
+    <svg className="cover-svg" viewBox="0 0 384 240" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <linearGradient id="ac" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#0c141d" />
+          <stop offset="100%" stopColor="#0a1017" />
+        </linearGradient>
+      </defs>
+      <rect width="384" height="240" fill="url(#ac)" />
+      <circle cx="300" cy="52" r="90" fill="#62aaff" opacity="0.06" />
+      {/* pipeline line */}
+      <line x1="108" y1="120" x2="276" y2="120" stroke="#62aaff" strokeOpacity="0.28" strokeWidth="1.5" strokeDasharray="3 4" />
+      <LogoChip cx={108} cy={120}>
+        <path fill="#62aaff" d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z" />
+      </LogoChip>
+      <LogoChip cx={192} cy={120}>
+        <path fill="#f3f1eb" d="M22.28 9.82a5.98 5.98 0 0 0-.52-4.91 6.05 6.05 0 0 0-6.51-2.9A6.07 6.07 0 0 0 4.98 4.18a5.98 5.98 0 0 0-3.99 2.9 6.05 6.05 0 0 0 .74 7.1 5.98 5.98 0 0 0 .51 4.91 6.05 6.05 0 0 0 6.52 2.9A5.98 5.98 0 0 0 13.26 22a6.05 6.05 0 0 0 5.77-4.21 5.99 5.99 0 0 0 4-2.9 6.06 6.06 0 0 0-.75-7.07Zm-9.02 12.6a4.48 4.48 0 0 1-2.88-1.04l.14-.08 4.78-2.76a.79.79 0 0 0 .39-.68v-6.74l2.02 1.17a.07.07 0 0 1 .04.05v5.58a4.5 4.5 0 0 1-4.5 4.5Zm-9.66-4.13a4.47 4.47 0 0 1-.54-3.01l.14.09 4.78 2.76a.78.78 0 0 0 .78 0l5.84-3.37v2.33a.08.08 0 0 1-.03.06L9.74 19.9a4.5 4.5 0 0 1-6.14-1.65Zm-1.26-10.4a4.48 4.48 0 0 1 2.34-1.97V11.7a.79.79 0 0 0 .39.68l5.81 3.35-2.02 1.17a.08.08 0 0 1-.07 0l-4.83-2.79a4.5 4.5 0 0 1-1.62-6.14Zm16.6 3.86-5.84-3.4L15.1 7.2a.08.08 0 0 1 .07 0l4.83 2.78a4.5 4.5 0 0 1-.68 8.11v-5.68a.79.79 0 0 0-.4-.67Zm2.01-3.03-.14-.09-4.77-2.78a.78.78 0 0 0-.79 0L9.6 8.6V6.27a.07.07 0 0 1 .03-.06l4.83-2.79a4.5 4.5 0 0 1 6.68 4.66Zm-12.64 4.17-2.02-1.16a.08.08 0 0 1-.04-.06V6.4a4.5 4.5 0 0 1 7.38-3.45l-.14.08L8.08 5.8a.79.79 0 0 0-.39.68l-.01 6.73Zm1.1-2.36 2.6-1.5 2.6 1.5v3l-2.6 1.5-2.6-1.5v-3Z" />
+      </LogoChip>
+      <LogoChip cx={276} cy={120}>
+        <path fill="#f3f1eb" d="M12 .8a11.2 11.2 0 0 0-3.54 21.83c.56.1.77-.24.77-.54v-2.1c-3.13.68-3.79-1.33-3.79-1.33-.51-1.3-1.25-1.65-1.25-1.65-1.02-.7.08-.69.08-.69 1.13.08 1.73 1.16 1.73 1.16 1 1.72 2.63 1.22 3.27.93.1-.72.39-1.22.71-1.5-2.5-.29-5.13-1.25-5.13-5.57 0-1.23.44-2.23 1.16-3.02-.12-.29-.5-1.43.11-2.98 0 0 .95-.3 3.08 1.15a10.7 10.7 0 0 1 5.61 0c2.13-1.45 3.08-1.15 3.08-1.15.61 1.55.23 2.69.11 2.98.72.79 1.16 1.79 1.16 3.02 0 4.33-2.64 5.27-5.15 5.56.4.35.75 1.03.75 2.08v3.08c0 .3.2.65.78.54A11.2 11.2 0 0 0 12 .8Z" />
+      </LogoChip>
+    </svg>
+  )
+}
+
+function PersonaCover() {
+  const avatars: { x: number; y: number; c: string }[] = [
+    { x: 128, y: 118, c: "#62aaff" },
+    { x: 176, y: 96, c: "#a77cff" },
+    { x: 226, y: 116, c: "#4fd0c0" },
+    { x: 158, y: 156, c: "#f0a35e" },
+    { x: 214, y: 162, c: "#62aaff" },
+    { x: 268, y: 104, c: "#a77cff" },
+  ]
+  return (
+    <svg className="cover-svg" viewBox="0 0 384 240" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <linearGradient id="pc" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#0c141d" />
+          <stop offset="100%" stopColor="#0a1017" />
+        </linearGradient>
+      </defs>
+      <rect width="384" height="240" fill="url(#pc)" />
+      <circle cx="80" cy="60" r="80" fill="#a77cff" opacity="0.05" />
+      <g stroke="#5a6672" strokeOpacity="0.4" strokeWidth="1">
+        {avatars.slice(0, -1).map((a, i) => (
+          <line key={i} x1={a.x} y1={a.y} x2={avatars[i + 1].x} y2={avatars[i + 1].y} />
+        ))}
+      </g>
+      {avatars.map((a, i) => (
+        <g key={i}>
+          <circle cx={a.x} cy={a.y} r="26" fill="#0e1a26" stroke={a.c} strokeWidth="1.6" />
+          <clipPath id={`clip${i}`}><circle cx={a.x} cy={a.y} r="24" /></clipPath>
+          <g clipPath={`url(#clip${i})`} fill={a.c} opacity="0.92">
+            <circle cx={a.x} cy={a.y - 5} r="7" />
+            <circle cx={a.x} cy={a.y + 20} r="14" />
+          </g>
+        </g>
+      ))}
+    </svg>
+  )
+}
 
 /* ---------- Data (ordered: Developer Assistant first) ---------- */
 
@@ -96,6 +93,10 @@ type Project = {
   link?: string
 }
 
+const cover = (src: string, alt: string) => (
+  <img src={`${src}&w=768&h=480&fit=crop&auto=format`} alt={alt} loading="lazy" />
+)
+
 const projects: Project[] = [
   {
     id: "assistant",
@@ -105,13 +106,7 @@ const projects: Project[] = [
     short: "A Telegram bot on n8n, OpenAI and the GitHub API that turns plain-language requirements into vetted open-source recommendations — cutting research time and accelerating delivery.",
     kicker: "01 · LLM · AUTOMATION · GITHUB · N8N",
     story: "GitBuddy is a Telegram bot built with n8n, OpenAI and the GitHub API that understands a developer's requirements in natural language and surfaces the best open-source solutions — reducing discovery time and helping teams ship faster.",
-    cover: (
-      <img
-        src="https://images.unsplash.com/photo-1515879218367-8466d910aaa4?w=768&h=480&fit=crop&auto=format"
-        alt="Source code displayed on a dark screen"
-        loading="lazy"
-      />
-    ),
+    cover: <AssistantCover />,
     link: PRESENTATION_URL,
   },
   {
@@ -132,7 +127,7 @@ const projects: Project[] = [
     short: "An audio-fingerprinting system in Python and SQL for accurate song recognition at scale — engineered for fast, reliable retrieval across large catalogs.",
     kicker: "03 · PYTHON · SQL · SIGNAL PROCESSING",
     story: "Designed and deployed an audio-fingerprinting system with Python and SQL that enabled accurate song recognition and scalable data retrieval — turning a hard signal-processing problem into a dependable, queryable service.",
-    cover: <NoteCover />,
+    cover: cover("https://images.unsplash.com/photo-1599669454699-248893623440?", "Studio headphones on a dark surface"),
   },
   {
     id: "blockchain",
@@ -142,7 +137,7 @@ const projects: Project[] = [
     short: "A decentralized smart-contract solution for secure, transparent and automated transactions — reducing intermediaries, cost and settlement risk.",
     kicker: "04 · BLOCKCHAIN · SMART CONTRACTS · WEB3",
     story: "A decentralized solution using smart contracts to enable secure, transparent and automated transactions — cutting out intermediaries and lowering the cost and risk of settlement.",
-    cover: <BlockchainCover />,
+    cover: cover("https://images.unsplash.com/photo-1761297920433-445c827868d2?", "A metallic chain against a dark background"),
   },
 ]
 
@@ -186,9 +181,9 @@ export default function App() {
       <header className="nav">
         <a className="logo" href="#">AB<b>.</b></a>
         <nav className="links">
-          <a href="#work">Work</a>
-          <a href="#experience">About</a>
+          <a href="#work">Projects</a>
           <a href="#experience">Experience</a>
+          <a href="#experience">About</a>
           <a href="#contact">Contact</a>
         </nav>
         <a className="talk" href="#contact">Let&rsquo;s Talk ↗</a>
@@ -204,29 +199,17 @@ export default function App() {
               From machine learning models to multi-agent systems, I turn complex,
               data-heavy problems into simple products that drive real business outcomes.
             </div>
-            <div className="cta-row">
-              <a className="cta" href="#work">Explore my work&nbsp; →</a>
-            </div>
           </div>
           <div className="hero-art">
-            <img
-              src="https://images.unsplash.com/photo-1785723093791-44447004e6bd?w=1400&h=1100&fit=crop&auto=format"
-              alt="A person looking out over a city skyline across water at sunset"
-            />
+            <img src={heroImg} alt="Arpan Bose standing in front of an Ashok Leyland heritage wall" />
             <div className="hand one">Building a<br />more interesting<br />tomorrow. ↗</div>
             <div className="hand two">Curious mind.<br />Analytical thinking.<br />Real-world impact.<br />Always building.</div>
-            <div className="rail"><b>01</b><span>02</span><span>03</span><span>04</span><span>05</span></div>
-            <div className="location"><i></i>BASED IN INDIA</div>
           </div>
         </section>
 
         <section id="work" className="work">
           <div className="work-head">
-            <div className="eyebrow">SELECTED WORK</div>
-            <div style={{ display: "flex", alignItems: "center" }}>
-              <p>A mix of AI, data, software and business curiosity.</p>
-              <div className="arrows"><span className="circle">←</span><span className="circle">→</span></div>
-            </div>
+            <div className="eyebrow">THINGS I&rsquo;VE BUILT</div>
           </div>
           <div className="projects">
             {projects.map((p) => (
@@ -253,8 +236,8 @@ export default function App() {
         <section id="experience" className="experience">
           <div className="exp-banner">
             <img
-              src="https://images.unsplash.com/photo-1567789884554-0b844b597180?w=900&h=700&fit=crop&auto=format"
-              alt="Vehicle being assembled by robotic machines inside an automotive factory"
+              src="https://images.unsplash.com/photo-1551471721-d3f1783e3603?w=900&h=700&fit=crop&auto=format"
+              alt="A freight truck inside a manufacturing facility"
               loading="lazy"
             />
             <span className="eyebrow">BEYOND PROJECTS</span>
@@ -285,12 +268,6 @@ export default function App() {
           </div>
         </section>
       </main>
-
-      <footer>
-        <span className="footer-logo">AB<b>.</b></span>
-        <span>© 2026 Arpan Bose. All rights reserved.</span>
-        <span>Built with curiosity <span className="dot">●</span></span>
-      </footer>
 
       {active && (
         <div className="modal" onClick={(e) => { if (e.target === e.currentTarget) setActive(null) }}>

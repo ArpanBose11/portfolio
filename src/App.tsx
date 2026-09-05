@@ -209,7 +209,7 @@ export default function App() {
               <div className="eyebrow">BEYOND PROJECTS</div>
               <h2>REAL-WORLD<br /><span>EXPERIENCE.</span></h2>
             </div>
-            <p>Taking the same builder mindset into real operations - balancing technical feasibility, operational constraints and measurable business value.</p>
+            <p>Taking the problem solving mindset into real operations while balancing technical feasibility, operational constraints and measurable business value.</p>
           </div>
 
           <article className="experience-feature">

@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react"
 import heroImg from "./imports/file_0000000079207207bb1e293b79bba92f.png"
 
-const PRESENTATION_URL = `${import.meta.env.BASE_URL}GitBuddy-Presentation.html`
+const GITBUDDY_URL = `${import.meta.env.BASE_URL}GitBuddy-Presentation.html`
+const PERSONA_URL = `${import.meta.env.BASE_URL}PersonaLab-Presentation.html`
 
 /** Rounded chip holding a 24-unit brand glyph, centered at (cx,cy). */
 function LogoChip({ cx, cy, children }: { cx: number; cy: number; children: React.ReactNode }) {
@@ -107,7 +108,7 @@ const projects: Project[] = [
     kicker: "01 · LLM · AUTOMATION · GITHUB · N8N",
     story: "GitBuddy is a Telegram bot built with n8n, OpenAI and the GitHub API that understands a developer's requirements in natural language and surfaces the best open-source solutions — reducing discovery time and helping teams ship faster.",
     cover: <AssistantCover />,
-    link: PRESENTATION_URL,
+    link: GITBUDDY_URL,
   },
   {
     id: "persona",
@@ -118,6 +119,7 @@ const projects: Project[] = [
     kicker: "02 · LLM · MULTI-AGENT · SIMULATION",
     story: "A multi-agent environment that uses LLMs to simulate realistic human personas, interactions and scenarios — giving teams a fast, low-cost way to pressure-test products, messaging and strategy before investing in real-world research.",
     cover: <PersonaCover />,
+    link: PERSONA_URL,
   },
   {
     id: "note",

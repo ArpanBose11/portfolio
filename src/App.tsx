@@ -3,6 +3,7 @@ import heroImg from "./imports/file_0000000079207207bb1e293b79bba92f.png"
 
 const GITBUDDY_URL = `${import.meta.env.BASE_URL}GitBuddy-Presentation.html`
 const PERSONA_URL = `${import.meta.env.BASE_URL}PersonaLab-Presentation.html`
+const BLOCKCHAIN_URL = `${import.meta.env.BASE_URL}Smart-Contract-Presentation.html`
 
 /** Rounded chip holding a 24-unit brand glyph, centered at (cx,cy). */
 function LogoChip({ cx, cy, children }: { cx: number; cy: number; children: React.ReactNode }) {
@@ -140,6 +141,7 @@ const projects: Project[] = [
     kicker: "04 · BLOCKCHAIN · SMART CONTRACTS · WEB3",
     story: "A decentralized solution using smart contracts to enable secure, transparent and automated transactions — cutting out intermediaries and lowering the cost and risk of settlement.",
     cover: cover("https://images.unsplash.com/photo-1761297920433-445c827868d2?", "A metallic chain against a dark background"),
+    link: BLOCKCHAIN_URL,
   },
 ]
 

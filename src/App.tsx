@@ -270,7 +270,7 @@ export default function App() {
           </article>
 
           <div className="experience-footer" id="contact">
-            <div className="exp-note">Build the system.<br />Understand the business.</div>
+            <div className="exp-note">From technical detail<br />to business value.</div>
             <div className="connect">
               LET&rsquo;S CONNECT
               <div className="socials">
@@ -308,16 +308,16 @@ export default function App() {
                 <strong>Quality relied on attention, not the system.</strong>
                 <p>Three assembly-line checks were discretionary, fatigue-prone and variant-sensitive. The goal was to create checkpoints that could not be skipped and left a digital trace.</p>
               </div>
-              <div className="case-outcome-block">
-                <span className="case-label">MY SOLUTIONS</span>
-                <strong>Engineer the checkpoint around the failure mode.</strong>
-                <p>ML-based tyre validation, version-controlled wiring retrieval and vision-based cab-latch verification turned manual checks into repeatable controls.</p>
-              </div>
-              <div className="case-outcome-block case-impact-block">
+              <div className="case-impact-block">
                 <span className="case-label">IMPACT</span>
                 <strong><span className="impact-number">128</span> productive minutes / shift</strong>
                 <p>Estimated time recovered across all three solutions, alongside faster checks and fewer supervisor escalations.</p>
               </div>
+            </div>
+
+            <div className="case-solutions">
+              <span className="case-label">MY SOLUTIONS</span>
+              <p>Three engineered checkpoints, each designed around a specific assembly-line failure mode.</p>
             </div>
 
             <div className="case-chapters">

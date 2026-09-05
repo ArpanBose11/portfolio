@@ -2,6 +2,10 @@ import { useEffect, useState } from "react"
 import heroImg from "./imports/file_0000000079207207bb1e293b79bba92f.png"
 import project1Cover from "./imports/project1.png"
 import project2Cover from "./imports/project2.png"
+import ashokFactory from "./imports/ashok-factory.jpg"
+import alTicsResults from "./imports/al-tics-results.png"
+import digitalEsk from "./imports/digital-esk.png"
+import visionCheck from "./imports/vision-check.png"
 
 const GITBUDDY_URL = `${import.meta.env.BASE_URL}GitBuddy-Presentation.html`
 const PERSONA_URL = `${import.meta.env.BASE_URL}PersonaLab-Presentation.html`
@@ -116,21 +120,22 @@ const ArrowIcon = () => (
 
 export default function App() {
   const [active, setActive] = useState<Project | null>(null)
+  const [experienceOpen, setExperienceOpen] = useState(false)
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setActive(null)
+      if (e.key === "Escape") { setActive(null); setExperienceOpen(false) }
     }
     document.addEventListener("keydown", onKey)
     return () => document.removeEventListener("keydown", onKey)
   }, [])
 
   useEffect(() => {
-    document.body.style.overflow = active ? "hidden" : ""
+    document.body.style.overflow = active || experienceOpen ? "hidden" : ""
     return () => {
       document.body.style.overflow = ""
     }
-  }, [active])
+  }, [active, experienceOpen])
 
   const openProject = (p: Project) => {
     if (p.link) {
@@ -198,22 +203,52 @@ export default function App() {
         </section>
 
         <section id="experience" className="experience">
-          <div className="exp-banner">
-            <img
-              src="https://images.unsplash.com/photo-1551471721-d3f1783e3603?w=900&h=700&fit=crop&auto=format"
-              alt="A freight truck inside a manufacturing facility"
-              loading="lazy"
-            />
-            <span className="eyebrow">BEYOND PROJECTS</span>
+          <div className="experience-intro">
+            <div>
+              <div className="eyebrow">BEYOND PROJECTS</div>
+              <h2>REAL-WORLD<br /><span>EXPERIENCE.</span></h2>
+            </div>
+            <p>Taking the same builder mindset into real operations — where the problem is messy, the constraints are real, and the outcome has to matter.</p>
           </div>
-          <div className="exp-copy">
-            <strong>Ashok Leyland · Summer Internship</strong><br />
-            Built computer-vision and ML solutions that improved defect prevention, inspection
-            efficiency and digital information retrieval — reducing manual effort and raising
-            quality on the manufacturing line.<br />
-            <a href="#">View experience&nbsp; →</a>
-          </div>
-          <div className="exp-side" id="contact">
+
+          <article className="experience-feature">
+            <div className="experience-photo">
+              <img src={ashokFactory} alt="Ashok Leyland truck assembly line" loading="lazy" />
+              <div className="photo-overlay"></div>
+              <div className="photo-label">AL · MANUFACTURING / QUALITY</div>
+              <div className="photo-caption">From operator attention<br />to engineered checkpoints.</div>
+            </div>
+
+            <div className="experience-main">
+              <div className="experience-meta">
+                <span>01</span>
+                <span>APR 2026 — JUN 2026</span>
+              </div>
+              <div className="experience-company">ASHOK LEYLAND</div>
+              <div className="experience-role">SUMMER INTERN</div>
+              <p className="experience-summary">Built machine-vision, machine-learning and digital workflow solutions for defect prevention across three assembly-line stations.</p>
+
+              <div className="impact-grid">
+                <div><strong>~7 min</strong><span>→ 10–30 sec</span><small>TYRE CHECK</small></div>
+                <div><strong>35–45%</strong><span>→ 12–15%</span><small>SUPERVISOR ESCALATION</small></div>
+                <div><strong>~11 min</strong><span>→ &lt;30 sec</span><small>WIRING RETRIEVAL</small></div>
+              </div>
+
+              <button className="experience-link" onClick={() => setExperienceOpen(true)}>VIEW CASE STUDY <ArrowIcon /></button>
+            </div>
+          </article>
+
+          <article className="experience-secondary">
+            <div className="secondary-index">02</div>
+            <div>
+              <div className="secondary-company">CITIUSTECH</div>
+              <div className="secondary-role">TRAINEE SOFTWARE ENGINEER</div>
+            </div>
+            <div className="secondary-date">JUL 2022 — DEC 2023</div>
+            <p>Enterprise applications, process automation and data-quality analytics — turning fragmented workflows into simpler, more reliable systems.</p>
+          </article>
+
+          <div className="experience-footer" id="contact">
             <div className="exp-note">Same ideas.<br />Bigger impact.</div>
             <div className="connect">
               LET&rsquo;S CONNECT
@@ -221,8 +256,8 @@ export default function App() {
                 <a href="https://www.linkedin.com/" target="_blank" rel="noreferrer" aria-label="LinkedIn">
                   <svg viewBox="0 0 24 24"><path d="M5.2 8.1H2.1V21h3.1V8.1ZM3.65 3A1.82 1.82 0 1 0 3.65 6.64 1.82 1.82 0 0 0 3.65 3ZM8.55 8.1h3v1.76h.04c.42-.8 1.45-2.06 3.64-2.06 3.89 0 4.61 2.56 4.61 5.89V21h-3.1v-6.47c0-1.54-.03-3.52-2.14-3.52-2.14 0-2.47 1.67-2.47 3.41V21h-3.1V8.1Z" /></svg>LinkedIn
                 </a>
-                <a href="https://github.com/" target="_blank" rel="noreferrer" aria-label="GitHub">
-                  <svg viewBox="0 0 24 24"><path d="M12 .8a11.2 11.2 0 0 0-3.54 21.83c.56.1.77-.24.77-.54v-2.1c-3.13.68-3.79-1.33-3.79-1.33-.51-1.3-1.25-1.65-1.25-1.65-1.02-.7.08-.69.08-.69 1.13.08 1.73 1.16 1.73 1.16 1 1.72 2.63 1.22 3.27.93.1-.72.39-1.22.71-1.5-2.5-.29-5.13-1.25-5.13-5.57 0-1.23.44-2.23 1.16-3.02-.12-.29-.5-1.43.11-2.98 0 0 .95-.3 3.08 1.15a10.7 10.7 0 0 1 5.61 0c2.13-1.45 3.08-1.15 3.08-1.15.61 1.55.23 2.69.11 2.98.72.79 1.16 1.79 1.16 3.02 0 4.33-2.64 5.27-5.15 5.56.4.35.75 1.03.75 2.08v3.08c0 .3.2.65.78.54A11.2 11.2 0 0 0 12 .8Z" /></svg>GitHub
+                <a href="https://github.com/ArpanBose11" target="_blank" rel="noreferrer" aria-label="GitHub">
+                  <svg viewBox="0 0 24 24"><path d="M12 .8a11.2 11.2 0 0 0-3.54 21.83c.56.1.77-.24.77-.54v-2.1c-3.13.68-3.79-1.33-3.79-1.33-.51-1.3-1.25-1.65-1.25-1.65-1.02-.7.08-.69.08-.69 1.13.08 1.73 1.16 1.73 1.16 1 1.72 2.63 1.22 3.27.93.1-.72.39-1.22.71-1.5-2.5-.29-5.13-1.25-5.13-5.57 0-1.23.44-2.23 1.16-3.02-.12-.29-.5-1.43.11-2.98 0 0 .95-.3 3.08 1.15a10.7 10.7 0 0 1 5.61 0c2.13-1.45 3.08-1.15 3.08-1.15.61 1.55.23 2.69.11 2.98.4.35.75 1.03.75 2.08v3.08c0 .3.2.65.78.54A11.2 11.2 0 0 0 12 .8Z" /></svg>GitHub
                 </a>
                 <a href="mailto:arpan.bose@example.com" aria-label="Email">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m4 7 8 6 8-6" /></svg>Email
@@ -232,6 +267,51 @@ export default function App() {
           </div>
         </section>
       </main>
+
+      {experienceOpen && (
+        <div className="experience-modal" onClick={(e) => { if (e.target === e.currentTarget) setExperienceOpen(false) }}>
+          <div className="experience-modal-box">
+            <div className="experience-modal-head">
+              <div>
+                <div className="modal-kicker">ASHOK LEYLAND · SUMMER INTERN · APR 2026 — JUN 2026</div>
+                <div className="modal-title">Poka-Yoke Identification &amp; Digital Solutions</div>
+                <p>Engineering zero-defect assembly through machine vision, machine learning and digital workflow controls.</p>
+              </div>
+              <button className="close" onClick={() => setExperienceOpen(false)} aria-label="Close">×</button>
+            </div>
+
+            <div className="case-intro">
+              <div>
+                <span className="case-label">THE PROBLEM</span>
+                <strong>Quality relied on attention, not the system.</strong>
+                <p>Three assembly-line checks were discretionary, fatigue-prone and variant-sensitive. The goal was to create checkpoints that could not be skipped and left a digital trace.</p>
+              </div>
+              <div className="case-impact"><strong>128</strong><span>productive minutes / shift<br />estimated recovered across all three solutions</span></div>
+            </div>
+
+            <div className="case-chapters">
+              <article>
+                <div className="chapter-head"><span>01</span><div><b>AL-TICS</b><small>ML TYRE IDENTIFICATION · LIVE PILOT</small></div></div>
+                <p>Scan the vehicle, capture two guided tyre photos, read make with an on-device CNN and size with OCR, then validate against the approved build.</p>
+                <div className="chapter-stats"><b>~7 min → 10–30 sec</b><span>267 tyres · 100% pass rate</span></div>
+                <img src={alTicsResults} alt="AL-TICS project findings from internship presentation" />
+              </article>
+              <article>
+                <div className="chapter-head"><span>02</span><div><b>DIGITAL ESK</b><small>WIRING DIAGRAM RETRIEVAL · LIVE PILOT</small></div></div>
+                <p>A version-controlled digital lookup replaced physical ESK folders, filtering the correct wiring variant and showing the approved version at the station.</p>
+                <div className="chapter-stats"><b>~11 min → under 30 sec</b><span>Wrong-variant picks nearly eliminated</span></div>
+                <img src={digitalEsk} alt="Digital ESK workflow from internship presentation" />
+              </article>
+              <article>
+                <div className="chapter-head"><span>03</span><div><b>VISION CHECK</b><small>CAB-LATCH VERIFICATION · DEPLOY-READY</small></div></div>
+                <p>A camera plus detection model was designed to confirm clip presence on every cycle, removing visual-only verification from the operator workflow.</p>
+                <div className="chapter-stats"><b>88% → 93% true positive</b><span>False negative 12% → 7%</span></div>
+                <img src={visionCheck} alt="Vision Check pilot trial results from internship presentation" />
+              </article>
+            </div>
+          </div>
+        </div>
+      )}
 
       {active && (
         <div className="modal" onClick={(e) => { if (e.target === e.currentTarget) setActive(null) }}>

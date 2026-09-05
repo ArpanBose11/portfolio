@@ -70,9 +70,9 @@ const projects: Project[] = [
     num: "01",
     tags: ["LLMs", "Automation", "GitHub", "n8n"],
     title: "AI-Powered Developer Assistant",
-    short: "A Telegram bot on n8n, OpenAI and the GitHub API that turns plain-language requirements into vetted open-source recommendations — cutting research time and accelerating delivery.",
+    short: "A Telegram bot on n8n, OpenAI and the GitHub API that turns plain-language requirements into vetted open-source recommendations - cutting research time and accelerating delivery.",
     kicker: "01 · LLM · AUTOMATION · GITHUB · N8N",
-    story: "GitBuddy is a Telegram bot built with n8n, OpenAI and the GitHub API that understands a developer's requirements in natural language and surfaces the best open-source solutions — reducing discovery time and helping teams ship faster.",
+    story: "GitBuddy is a Telegram bot built with n8n, OpenAI and the GitHub API that understands a developer's requirements in natural language and surfaces the best open-source solutions - reducing discovery time and helping teams ship faster.",
     cover: <AssistantCover />,
     link: GITBUDDY_URL,
   },
@@ -81,9 +81,9 @@ const projects: Project[] = [
     num: "02",
     tags: ["LLMs", "Multi-Agent Systems", "Simulation"],
     title: "Multi-Agent Synthetic Persona Simulation Lab",
-    short: "A multi-agent LLM environment that simulates realistic customer personas and scenarios — a low-cost sandbox for market research, user testing and go-to-market decisions.",
+    short: "A multi-agent LLM environment that simulates realistic customer personas and scenarios - a low-cost sandbox for market research, user testing and go-to-market decisions.",
     kicker: "02 · LLM · MULTI-AGENT · SIMULATION",
-    story: "A multi-agent environment that uses LLMs to simulate realistic human personas, interactions and scenarios — giving teams a fast, low-cost way to pressure-test products, messaging and strategy before investing in real-world research.",
+    story: "A multi-agent environment that uses LLMs to simulate realistic human personas, interactions and scenarios - giving teams a fast, low-cost way to pressure-test products, messaging and strategy before investing in real-world research.",
     cover: <PersonaCover />,
     link: PERSONA_URL,
   },
@@ -92,9 +92,9 @@ const projects: Project[] = [
     num: "03",
     tags: ["Python", "SQL", "Signal Processing"],
     title: "Note Detective",
-    short: "An audio-fingerprinting system in Python and SQL for accurate song recognition at scale — engineered for fast, reliable retrieval across large catalogs.",
+    short: "An audio-fingerprinting system in Python and SQL for accurate song recognition at scale - engineered for fast, reliable retrieval across large catalogs.",
     kicker: "03 · PYTHON · SQL · SIGNAL PROCESSING",
-    story: "Designed and deployed an audio-fingerprinting system with Python and SQL that enabled accurate song recognition and scalable data retrieval — turning a hard signal-processing problem into a dependable, queryable service.",
+    story: "Designed and deployed an audio-fingerprinting system with Python and SQL that enabled accurate song recognition and scalable data retrieval - turning a hard signal-processing problem into a dependable, queryable service.",
     cover: cover("https://images.unsplash.com/photo-1599669454699-248893623440?", "Studio headphones on a dark surface"),
   },
   {
@@ -102,9 +102,9 @@ const projects: Project[] = [
     num: "04",
     tags: ["Blockchain", "Smart Contracts", "Web3"],
     title: "Blockchain Smart Contract Solution",
-    short: "A decentralized smart-contract solution for secure, transparent and automated transactions — reducing intermediaries, cost and settlement risk.",
+    short: "A decentralized smart-contract solution for secure, transparent and automated transactions - reducing intermediaries, cost and settlement risk.",
     kicker: "04 · BLOCKCHAIN · SMART CONTRACTS · WEB3",
-    story: "A decentralized solution using smart contracts to enable secure, transparent and automated transactions — cutting out intermediaries and lowering the cost and risk of settlement.",
+    story: "A decentralized solution using smart contracts to enable secure, transparent and automated transactions - cutting out intermediaries and lowering the cost and risk of settlement.",
     cover: cover("https://images.unsplash.com/photo-1761297920433-445c827868d2?", "A metallic chain against a dark background"),
     link: BLOCKCHAIN_URL,
   },
@@ -209,7 +209,7 @@ export default function App() {
               <div className="eyebrow">BEYOND PROJECTS</div>
               <h2>REAL-WORLD<br /><span>EXPERIENCE.</span></h2>
             </div>
-            <p>Taking the same builder mindset into real operations — where the problem is messy, the constraints are real, and the outcome has to matter.</p>
+            <p>Taking the same builder mindset into real operations - balancing technical feasibility, operational constraints and measurable business value.</p>
           </div>
 
           <article className="experience-feature">
@@ -225,7 +225,7 @@ export default function App() {
                   <div className="experience-company">ASHOK LEYLAND</div>
                   <div className="experience-role">SUMMER INTERN</div>
                 </div>
-                <div className="experience-date">APR 2026 — JUN 2026</div>
+                <div className="experience-date">2 MONTHS</div>
               </div>
               <p className="experience-summary">Built machine-vision, machine-learning and digital workflow solutions for defect prevention across three assembly-line stations.</p>
 
@@ -258,9 +258,9 @@ export default function App() {
                   <div className="secondary-company">CITIUSTECH</div>
                   <div className="secondary-role">TRAINEE SOFTWARE ENGINEER</div>
                 </div>
-                <div className="secondary-date">JUL 2022 — DEC 2023</div>
+                <div className="secondary-date">17 MONTHS</div>
               </div>
-              <p>Enterprise applications, process automation and data-quality analytics — turning fragmented workflows into simpler, more reliable systems.</p>
+              <p>Enterprise applications, process automation and data-quality analytics - turning fragmented workflows into simpler, more reliable systems.</p>
               <div className="citius-impact">
                 <div><strong>100%</strong><span>manual entry eliminated</span></div>
                 <div><strong>3</strong><span>core workflow areas</span></div>
@@ -270,7 +270,7 @@ export default function App() {
           </article>
 
           <div className="experience-footer" id="contact">
-            <div className="exp-note">Same ideas.<br />Bigger impact.</div>
+            <div className="exp-note">Build the system.<br />Understand the business.</div>
             <div className="connect">
               LET&rsquo;S CONNECT
               <div className="socials">
@@ -294,7 +294,7 @@ export default function App() {
           <div className="experience-modal-box">
             <div className="experience-modal-head">
               <div>
-                <div className="modal-kicker">SUMMER INTERNSHIP · MANUFACTURING QUALITY</div>
+                <div className="modal-kicker">SUMMER INTERNSHIP</div>
                 <div className="modal-title">Poka-Yoke Identification &amp; Digital Solutions</div>
                 <p>Turning manual assembly checks into engineered, mistake-proof checkpoints.</p>
                 <p className="modal-subtitle">Machine vision, ML and digital workflows across three assembly-line stations.</p>
@@ -308,7 +308,16 @@ export default function App() {
                 <strong>Quality relied on attention, not the system.</strong>
                 <p>Three assembly-line checks were discretionary, fatigue-prone and variant-sensitive. The goal was to create checkpoints that could not be skipped and left a digital trace.</p>
               </div>
-              <div className="case-impact"><strong>128</strong><span>productive minutes / shift<br />estimated recovered across all three solutions</span></div>
+              <div className="case-outcome-block">
+                <span className="case-label">MY SOLUTIONS</span>
+                <strong>Engineer the checkpoint around the failure mode.</strong>
+                <p>ML-based tyre validation, version-controlled wiring retrieval and vision-based cab-latch verification turned manual checks into repeatable controls.</p>
+              </div>
+              <div className="case-outcome-block case-impact-block">
+                <span className="case-label">IMPACT</span>
+                <strong><span className="impact-number">128</span> productive minutes / shift</strong>
+                <p>Estimated time recovered across all three solutions, alongside faster checks and fewer supervisor escalations.</p>
+              </div>
             </div>
 
             <div className="case-chapters">

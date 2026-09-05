@@ -1,0 +1,3079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<!-- This site is hosted on Netlify. Anyone can build and deploy a site
+     like this one for free: https://netlify.new/?utm_campaign=ai-legible&utm_source=comment&utm_medium=referral&utm_id=595e482b-3620-47cc-9090-2c21c1a7c345
+     Netlify hosting facts for this site: static/SSR served via Netlify Edge. -->
+<meta name="hosting-provider" content="Netlify">
+<meta name="netlify-deploy" content="https://netlify.new/?utm_campaign=ai-legible&amp;utm_source=meta&amp;utm_medium=referral&amp;utm_id=595e482b-3620-47cc-9090-2c21c1a7c345">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Smart Contract — A deal neither side can cheat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect x='1' y='6' width='29' height='29' rx='8.5' fill='%23101114'/%3E%3Cpath d='M8.6 21.4l5.9 5.9 13.1-13.1' stroke='%23FFFFFF' stroke-width='4.2' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3Cpath d='M27.6 14.2L36.8 4.6' stroke='%230071E3' stroke-width='4.2' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
+<style>
+/* ============================================================
+   Smart Contract — design tokens
+   Palette follows the mark: near-black ink, neutral greys, one blue accent.
+   The accent stays blue on purpose — green / amber / red already carry meaning
+   in this app (valid / pending / tampered) and must remain unambiguous.
+   ============================================================ */
+:root{
+  --bg:#F5F5F7;
+  --card:#FFFFFF;
+  --ink:#101114;
+  --primary:#0071E3;
+  --accent:#0071E3;
+  --slate:#6E6E78;
+  --border:#E3E3E8;
+
+  --green:#10B981;   --green-bg:#E6F7F1;
+  --amber:#F59E0B;   --amber-bg:#FEF3E2;
+  --red:#EF4444;     --red-bg:#FDECEC;
+
+  --log-bg:#0B0B0D;
+  --log-ink:#A8A8B3;
+
+  --radius:16px;
+  --shadow:0 8px 24px rgba(16,17,20,.07);
+  --shadow-lg:0 18px 50px rgba(16,17,20,.18);
+
+  --ui:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--ink);font-family:var(--ui);
+  font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased;
+}
+/* soft, very low-saturation gradient field behind everything */
+body::before{
+  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:radial-gradient(58% 42% at 12% 0%,rgba(0,113,227,.07),transparent 60%),
+             radial-gradient(50% 38% at 92% 4%,rgba(16,185,129,.07),transparent 62%),
+             radial-gradient(40% 30% at 60% 100%,rgba(0,113,227,.04),transparent 65%);
+}
+button{font-family:inherit;font-size:inherit;color:inherit;cursor:pointer}
+button:disabled{cursor:not-allowed}
+select,input,textarea{font-family:inherit;font-size:inherit;color:inherit}
+:focus-visible{outline:3px solid rgba(0,113,227,.45);outline-offset:2px;border-radius:6px}
+.mono{font-family:var(--mono)}
+
+/* ============================================================
+   Top bar
+   ============================================================ */
+.topbar{
+  position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:16px;padding:12px 24px;
+  background:rgba(255,255,255,.9);backdrop-filter:saturate(180%) blur(12px);border-bottom:1px solid var(--border);
+}
+.brand{display:flex;align-items:center;gap:11px;min-width:0}
+.brand-text{display:flex;flex-direction:column;line-height:1.05;min-width:0}
+.mark{flex:none}
+.mark .mark-tail{
+  /* the tail draws itself on load — the agreement reaching past the block */
+  stroke-dasharray:14;stroke-dashoffset:14;
+  animation:draw-tail .7s .35s cubic-bezier(.4,.9,.3,1) forwards;
+}
+@keyframes draw-tail{to{stroke-dashoffset:0}}
+
+/* Two typefaces, on purpose: the agreement is human, its execution is not. */
+.wordmark{display:flex;align-items:baseline;gap:7px;white-space:nowrap}
+.wordmark em{
+  font-family:"Instrument Serif",Georgia,"Times New Roman",serif;
+  font-style:italic;font-size:25px;font-weight:400;letter-spacing:-.01em;line-height:1;
+}
+.wordmark .wm-c{
+  font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.26em;
+  text-transform:uppercase;color:var(--ink);line-height:1;
+  border-left:1px solid var(--border);padding-left:8px;
+}
+.tagline{font-size:11px;color:var(--slate);font-weight:500;margin-top:3px}
+.tag-demo{
+  margin-left:6px;font-size:10px;font-weight:700;letter-spacing:.09em;color:var(--primary);
+  background:#E8F2FE;border:1px solid #CFE4FC;padding:4px 8px;border-radius:999px;white-space:nowrap;
+}
+.topbar-center{flex:1;display:flex;justify-content:center}
+.topbar-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+
+.pill{
+  display:inline-flex;align-items:center;gap:9px;padding:8px 16px;border-radius:999px;
+  font-weight:700;font-size:12.5px;letter-spacing:.03em;border:1px solid transparent;white-space:nowrap;
+  transition:background .35s ease,color .35s ease,border-color .35s ease,box-shadow .35s ease;
+}
+.pill .pdot{width:9px;height:9px;border-radius:50%;background:currentColor;flex:none}
+.pill .pcount{font-family:var(--mono);font-weight:700;opacity:.85}
+.pill.ok  {background:var(--green-bg);color:#0A7A63;border-color:#BEEBDD}
+.pill.bad {background:var(--red-bg);color:#B91C1C;border-color:#F7C7C7}
+.pill.warn{background:var(--amber-bg);color:#96620A;border-color:#F6DDB0}
+.pill.ok .pdot{animation:breathe 2.4s ease-in-out infinite}
+.pill.bad{animation:pulse-red 1.6s ease-in-out infinite}
+@keyframes breathe{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes pulse-red{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}50%{box-shadow:0 0 0 6px rgba(239,68,68,.12)}}
+
+/* ============================================================ Buttons */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:9px 15px;border-radius:10px;
+  border:1px solid var(--border);background:#fff;color:var(--ink);font-weight:600;font-size:13px;
+  transition:transform .12s ease,box-shadow .18s ease,background .18s ease,border-color .18s ease,opacity .18s;
+}
+.btn:hover:not(:disabled){box-shadow:0 4px 14px rgba(16,17,20,.10);transform:translateY(-1px)}
+.btn:active:not(:disabled){transform:translateY(0)}
+.btn:disabled{opacity:.45}
+.btn-primary{background:var(--primary);border-color:var(--primary);color:#fff}
+.btn-primary:hover:not(:disabled){background:#0062C4}
+.btn-ink{background:var(--ink);border-color:var(--ink);color:#fff}
+.btn-green{background:var(--green);border-color:var(--green);color:#fff}
+.btn-green:hover:not(:disabled){background:#0DA271}
+.btn-amber{background:#fff;border-color:#F0C67A;color:#96620A}
+.btn-amber:hover:not(:disabled){background:var(--amber-bg)}
+.btn-danger{background:#fff;border-color:#F3B4B4;color:#B91C1C}
+.btn-danger:hover:not(:disabled){background:var(--red-bg)}
+.btn-danger-solid{background:var(--red);border-color:var(--red);color:#fff}
+.btn-danger-solid:hover:not(:disabled){background:#DC2626}
+.btn-sm{padding:7px 12px;font-size:12px;border-radius:9px}
+
+.switch{
+  display:inline-flex;align-items:center;gap:9px;padding:6px 12px 6px 8px;border:1px solid var(--border);
+  background:#fff;border-radius:999px;font-weight:600;font-size:12.5px;transition:.2s;
+}
+.switch .track{width:38px;height:21px;border-radius:999px;background:#DCDCE2;position:relative;transition:background .22s ease;flex:none}
+.switch .knob{position:absolute;top:2.5px;left:2.5px;width:16px;height:16px;border-radius:50%;background:#fff;
+  box-shadow:0 1px 3px rgba(0,0,0,.28);transition:transform .22s cubic-bezier(.4,1.4,.5,1)}
+.switch[aria-pressed="true"]{border-color:#F3B4B4;background:var(--red-bg);color:#B91C1C}
+.switch[aria-pressed="true"] .track{background:var(--red)}
+.switch[aria-pressed="true"] .knob{transform:translateX(17px)}
+
+/* ============================================================ Layout */
+.wrap{max-width:1560px;margin:0 auto;padding:20px 24px 40px}
+.layout{display:grid;grid-template-columns:390px minmax(0,1fr);gap:20px;align-items:start}
+.card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:22px;min-width:0;
+  animation:panel-in .55s cubic-bezier(.25,.9,.35,1) both;
+}
+.layout > .card:nth-child(2){animation-delay:.08s}
+@keyframes panel-in{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.eyebrow{
+  font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.16em;
+  color:var(--slate);text-transform:uppercase;
+}
+
+/* ============================================================
+   Problem statement — told in motion, not paragraphs
+   ============================================================ */
+.problem{
+  position:relative;overflow:hidden;
+  background:linear-gradient(155deg,#1C1D22 0%,#101114 62%,#17181C 100%);
+  color:#EBEBEF;border:1px solid #26272E;border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:28px 30px;margin-bottom:20px;
+}
+/* slow aurora wash, borrowed from the reference template's soft gradient field */
+.problem::before{
+  content:"";position:absolute;inset:-50% -15% auto -15%;height:120%;pointer-events:none;
+  background:radial-gradient(42% 55% at 22% 38%,rgba(0,113,227,.40),transparent 70%),
+             radial-gradient(38% 50% at 78% 26%,rgba(16,185,129,.26),transparent 72%);
+  filter:blur(26px);animation:aurora 20s ease-in-out infinite alternate;
+}
+@keyframes aurora{from{transform:translate3d(-3%,0,0) scale(1)}to{transform:translate3d(3%,3%,0) scale(1.07)}}
+.problem > *{position:relative;z-index:1}
+
+.p-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.p-eyebrow{
+  font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.18em;
+  color:#34D399;text-transform:uppercase;
+}
+.problem h2{
+  margin:10px 0 0;font-size:27px;font-weight:800;letter-spacing:-.035em;color:#fff;
+  line-height:1.12;max-width:16ch;
+}
+.p-lede{margin:12px 0 0;font-size:13.5px;line-height:1.6;color:#A9A9B4;max-width:44ch}
+.p-collapse{
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);color:#C3C3CB;
+  padding:7px 13px;border-radius:9px;font-family:var(--mono);font-size:10.5px;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;
+}
+.p-collapse:hover{background:rgba(255,255,255,.15);color:#fff}
+
+.p-body{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:30px;margin-top:22px;align-items:center}
+.problem.collapsed .p-body{display:none}
+
+/* ---- the four beats, as a clickable list -------------------------------- */
+.beats{display:grid;gap:2px}
+.beat{
+  display:grid;grid-template-columns:26px minmax(0,1fr);gap:11px;align-items:start;
+  padding:10px 12px;border-radius:11px;background:transparent;border:1px solid transparent;
+  text-align:left;width:100%;transition:background .35s ease,border-color .35s ease;
+}
+.beat .bn{
+  font-family:var(--mono);font-size:10.5px;font-weight:700;color:#6A6A74;
+  border:1px solid rgba(255,255,255,.14);border-radius:7px;height:24px;
+  display:grid;place-items:center;transition:.35s;
+}
+.beat .bt{display:block;font-size:13px;font-weight:700;color:#9A9AA5;letter-spacing:-.01em;transition:color .35s}
+.beat .bd{
+  display:block;font-size:12px;line-height:1.55;color:#8A8A95;margin-top:0;
+  max-height:0;opacity:0;overflow:hidden;transition:max-height .45s ease,opacity .3s ease,margin .45s ease;
+}
+.beat[aria-current="true"] .bd{margin-top:4px}
+.beat[aria-current="true"]{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.12)}
+.beat[aria-current="true"] .bn{color:#101114;background:#34D399;border-color:#34D399}
+.beat[aria-current="true"] .bt{color:#fff}
+.beat[aria-current="true"] .bd{max-height:80px;opacity:1}
+.beat:hover .bt{color:#DEDEE4}
+.bprog{height:2px;border-radius:2px;background:rgba(255,255,255,.10);margin-top:10px;overflow:hidden}
+.bprog > i{display:block;height:100%;width:0;background:#34D399;border-radius:2px}
+.bprog.run > i{animation:beatfill var(--beat-ms,3600ms) linear forwards}
+@keyframes beatfill{from{width:0}to{width:100%}}
+
+/* ---- the stage ---------------------------------------------------------- */
+.stage{
+  position:relative;height:212px;border-radius:14px;
+  background:rgba(6,16,32,.42);border:1px solid rgba(255,255,255,.09);
+  display:flex;align-items:center;justify-content:space-between;padding:0 20px;overflow:hidden;
+}
+.stage::after{ /* faint grid, keeps the dark panel from reading flat */
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;
+  background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);
+  background-size:32px 32px;
+}
+.stage > *{position:relative;z-index:2}
+
+.actor{
+  width:96px;flex:none;border-radius:12px;padding:12px 10px;text-align:center;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.13);
+  transition:opacity .5s ease,transform .5s ease,border-color .5s ease,background .5s ease;
+}
+.actor .ico{display:block;font-size:19px;line-height:1.1;color:#fff}
+.actor .nm{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:#8A8A95;margin-top:5px}
+.actor .sub{display:block;font-size:11px;font-weight:700;color:#E6E6EA;margin-top:2px}
+/* the seller loses out the moment the record is silently edited */
+.stage[data-beat="2"] .actor.seller{opacity:.42;transform:translateY(4px);border-color:rgba(239,68,68,.5)}
+.stage[data-beat="3"] .actor.seller{border-color:rgba(16,185,129,.55)}
+
+/* connecting wire + travelling value */
+.wire{
+  position:absolute;left:116px;right:116px;top:50%;height:1px;z-index:1;
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,.22) 0 6px,transparent 6px 12px);
+}
+/* the dot rides a rail spanning the wire, so `left` is a % of the distance.
+   (named p-rail, not .track — .track already belongs to the topbar switch) */
+.p-rail{position:absolute;left:116px;right:116px;top:50%;height:0;z-index:3}
+.pulse{
+  position:absolute;top:-4.5px;left:0;margin-left:-4.5px;width:9px;height:9px;border-radius:50%;
+  background:#34D399;box-shadow:0 0 0 4px rgba(127,227,188,.18);opacity:0;
+}
+.stage[data-beat="0"] .pulse{animation:recoil 2.6s cubic-bezier(.45,0,.5,1) infinite}
+.stage[data-beat="1"] .pulse{animation:viacustodian 3.6s ease-in-out infinite}
+.stage[data-beat="2"] .pulse{animation:intercept 3.4s ease-in-out infinite;
+  background:#FCA5A5;box-shadow:0 0 0 4px rgba(239,68,68,.20)}
+.stage[data-beat="3"] .pulse{animation:through 3.2s ease-in-out infinite}
+/* nobody will commit: the value edges out and retreats */
+@keyframes recoil{0%{left:0;opacity:0}10%{opacity:1}40%{left:38%;opacity:1}
+  55%{left:38%}90%{left:0;opacity:.3}100%{left:0;opacity:0}}
+/* it now has to pass through the custodian */
+@keyframes viacustodian{0%{left:0;opacity:0}10%{opacity:1}38%{left:50%}62%{left:50%}
+  94%{left:100%;opacity:1}100%{left:100%;opacity:0}}
+/* and there it stops — quietly rewritten */
+@keyframes intercept{0%{left:0;opacity:0}12%{opacity:1}45%,100%{left:50%;opacity:1}}
+@keyframes through{0%{left:0;opacity:0}10%{opacity:1}90%{left:100%;opacity:1}100%{left:100%;opacity:0}}
+
+/* middle: the thing that keeps changing */
+.mid{flex:1;display:grid;place-items:center;min-width:0;height:100%}
+.layer{
+  grid-area:1/1;opacity:0;transform:translateY(10px) scale(.96);
+  transition:opacity .5s ease,transform .55s cubic-bezier(.3,1.2,.5,1),filter .5s ease;
+  pointer-events:none;filter:blur(3px);
+}
+.mid{display:grid}
+.mid > .layer{grid-area:1/1}
+.stage[data-beat="0"] .layer.stall,
+.stage[data-beat="1"] .layer.vault,
+.stage[data-beat="2"] .layer.vault,
+.stage[data-beat="3"] .layer.mesh{opacity:1;transform:none;filter:none}
+
+/* beat 0 — the stand-off: naming the exposure on each side */
+.stall{text-align:center;display:grid;justify-items:center;gap:4px}
+.stall .risk{
+  font-family:var(--mono);font-size:9px;letter-spacing:.06em;color:#E0B94A;
+  background:rgba(245,158,11,.13);border:1px solid rgba(245,158,11,.32);
+  border-radius:999px;padding:3px 9px;white-space:nowrap;opacity:0;
+}
+.stage[data-beat="0"] .stall .r1{animation:riskin .5s .25s ease forwards}
+.stage[data-beat="0"] .stall .r2{animation:riskin .5s .95s ease forwards}
+@keyframes riskin{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
+.stall .q{
+  display:block;font-size:30px;font-weight:800;color:#FCD34D;line-height:1;
+  animation:qpulse 2.4s ease-in-out infinite;
+}
+@keyframes qpulse{0%,100%{opacity:.45;transform:scale(.94)}50%{opacity:1;transform:scale(1.06)}}
+.stall .qc{
+  display:block;font-family:var(--mono);font-size:9px;letter-spacing:.16em;
+  color:#C9A227;margin-top:2px;text-transform:uppercase;
+}
+
+/* beats 1–2 — the custodian's single row */
+.vault{
+  position:relative;width:238px;border-radius:11px;background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.16);
+  transition:border-color .5s ease,box-shadow .5s ease;
+}
+.stage[data-beat="2"] .vault{border-color:rgba(239,68,68,.55);box-shadow:0 0 0 4px rgba(239,68,68,.10)}
+.vault .vh{
+  display:flex;align-items:center;gap:6px;padding:7px 10px;white-space:nowrap;
+  background:rgba(255,255,255,.05);border-radius:10px 10px 0 0;
+  font-family:var(--mono);font-size:9px;letter-spacing:.13em;color:#9A9AA5;text-transform:uppercase;
+  border-bottom:1px solid rgba(255,255,255,.10);
+}
+/* floated so the header never reflows between beats */
+.vault .vtrust{
+  position:absolute;top:-10px;right:8px;letter-spacing:.06em;color:#08301F;
+  background:#34D399;border-radius:999px;padding:2px 8px;font-size:8.5px;font-weight:700;
+  opacity:0;transform:translateY(4px);
+  transition:opacity .45s .35s ease,transform .45s .35s ease;
+}
+.stage[data-beat="1"] .vault .vtrust{opacity:1;transform:none}
+/* the admin arrives, and clicks */
+.vault .vcursor{
+  position:absolute;left:50%;top:34%;opacity:0;z-index:4;
+  transform:translate(26px,26px) scale(.9);
+  transition:opacity .35s ease,transform .7s cubic-bezier(.35,.9,.4,1);
+}
+.stage[data-beat="2"] .vault .vcursor{opacity:1;transform:translate(2px,2px) scale(1)}
+.stage[data-beat="2"] .vault .vcursor::after{
+  content:"";position:absolute;left:-7px;top:-7px;width:22px;height:22px;border-radius:50%;
+  border:2px solid #FCA5A5;animation:vclick .6s .55s ease forwards;
+}
+@keyframes vclick{from{transform:scale(.3);opacity:1}to{transform:scale(1.6);opacity:0}}
+/* the receipt the database quietly prints */
+.vault .vreceipt{
+  position:absolute;right:-6px;bottom:-13px;font-family:var(--mono);font-size:8.5px;font-weight:700;
+  color:#0A7A63;background:#D6F5E8;border:1px solid #A7E6CE;border-radius:999px;padding:3px 8px;
+  opacity:0;transform:translateY(-4px) scale(.9);
+  transition:opacity .35s .9s ease,transform .35s .9s cubic-bezier(.3,1.4,.5,1);
+}
+.stage[data-beat="2"] .vault .vreceipt{opacity:1;transform:none}
+.vault .vr{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 10px;
+  font-family:var(--mono);font-size:11px;color:#A9A9B4}
+.vault .vr b{color:#fff;font-weight:700;transition:color .4s}
+.vault .vold{position:relative;transition:opacity .4s ease}
+.stage[data-beat="2"] .vault .vold{opacity:.42;color:#8A8A95}
+.stage[data-beat="2"] .vault .vold::after{
+  content:"";position:absolute;left:-2px;right:-2px;top:50%;height:1.5px;background:#EF4444;
+  transform:scaleX(0);transform-origin:left;animation:strike .5s .25s ease forwards;
+}
+@keyframes strike{to{transform:scaleX(1)}}
+.vault .vnew{opacity:0;color:#FCA5A5;transform:translateX(-6px);transition:opacity .4s .5s ease,transform .4s .5s ease}
+.stage[data-beat="2"] .vault .vnew{opacity:1;transform:none}
+.vault .vf{padding:7px 10px;font-family:var(--mono);font-size:9px;letter-spacing:.08em;
+  color:#77777F;border-top:1px solid rgba(255,255,255,.08);transition:color .4s}
+.stage[data-beat="2"] .vault .vf{color:#FCA5A5}
+
+/* beat 3 — replicated + chained */
+.mesh{display:flex;align-items:center;gap:6px;flex-direction:column}
+/* p-mrow, not .mrow — the contract builder already owns that class */
+.mesh .p-mrow{display:flex;align-items:center;gap:5px}
+.mnode{
+  width:46px;padding:5px 0;border-radius:9px;display:grid;place-items:center;gap:1px;
+  font-family:var(--mono);font-size:11px;font-weight:700;color:#34D399;
+  background:rgba(16,185,129,.13);border:1px solid rgba(16,185,129,.45);
+  opacity:0;transform:translateY(8px) scale(.9);
+}
+/* each copy carries its own hash — three match, one does not */
+.mnode i{font-style:normal;font-size:8px;letter-spacing:.04em;opacity:.75}
+.stage[data-beat="3"] .mnode{animation:nodein .45s cubic-bezier(.3,1.3,.5,1) forwards}
+.stage[data-beat="3"] .mnode:nth-child(1){animation-delay:.05s}
+.stage[data-beat="3"] .mnode:nth-child(3){animation-delay:.14s}
+.stage[data-beat="3"] .mnode:nth-child(5){animation-delay:.23s}
+.stage[data-beat="3"] .mnode:nth-child(7){animation-delay:.32s}
+@keyframes nodein{to{opacity:1;transform:none}}
+.mnode.bad{color:#FCA5A5;background:rgba(239,68,68,.14);border-color:rgba(239,68,68,.55)}
+.stage[data-beat="3"] .mnode.bad{animation:nodein .45s .32s cubic-bezier(.3,1.3,.5,1) forwards,
+                                            badshake .5s 1.05s ease}
+@keyframes badshake{0%,100%{transform:none}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+.mlink{width:9px;height:1px;background:rgba(127,227,188,.45);flex:none}
+.mlink.snap{background:rgba(239,68,68,.6)}
+.mverdict{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.11em;color:#34D399;margin-top:9px;
+  opacity:0;transform:translateY(5px);text-transform:uppercase;
+}
+.stage[data-beat="3"] .mverdict{animation:nodein .45s 1.25s ease forwards}
+
+@media (max-width:1000px){
+  .p-body{grid-template-columns:1fr;gap:20px}
+  .problem h2{max-width:none}
+}
+@media (max-width:620px){
+  .stage{height:auto;flex-direction:column;gap:14px;padding:18px 14px}
+  .wire,.p-rail{display:none}
+  .actor{width:100%;display:flex;align-items:center;gap:10px;text-align:left}
+  .actor .nm,.actor .sub{margin-top:0}
+}
+
+/* ============================================================ Contract panel */
+.contract-title{font-size:21px;font-weight:800;letter-spacing:-.02em;margin:8px 0 2px}
+.contract-sub{color:var(--slate);font-size:12.5px;font-weight:500}
+.parties{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.party{
+  font-size:10.5px;font-weight:600;padding:4px 9px;border-radius:999px;
+  background:#F4F4F6;color:var(--slate);border:1px solid var(--border);
+}
+.party b{font-weight:800;color:var(--ink)}
+
+.escrow-box{
+  margin-top:16px;padding:18px;border-radius:14px;
+  background:linear-gradient(160deg,#1C1D22 0%,#101114 62%);color:#fff;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07);
+}
+.escrow-label{font-size:10.5px;font-weight:700;letter-spacing:.13em;color:#9A9AA5;text-transform:uppercase}
+.escrow-amount{font-size:32px;font-weight:800;letter-spacing:-.025em;margin-top:6px;font-variant-numeric:tabular-nums;transition:color .3s ease}
+.escrow-amount.tampered{color:#FCA5A5}
+.bar{height:7px;border-radius:999px;background:rgba(255,255,255,.14);margin-top:14px;overflow:hidden}
+.bar > i{display:block;height:100%;border-radius:999px;background:var(--green);width:0%;
+  transition:width .55s cubic-bezier(.3,1,.4,1),background .3s ease}
+.bar.tampered > i{background:var(--red)}
+.escrow-caption{margin-top:9px;font-size:11.5px;color:#A3A3AE;font-family:var(--mono)}
+
+.ledger-alert{
+  margin:12px 0 0;padding:11px 13px;border-radius:12px;background:var(--red-bg);
+  border:1px solid #F7C7C7;color:#B91C1C;font-size:12px;line-height:1.5;animation:logfade .3s ease;
+}
+.ledger-alert[hidden]{display:none}
+
+.wallets{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.wallet{border:1px solid var(--border);border-radius:12px;padding:12px;background:#FBFBFC}
+.wallet .role{font-size:9.5px;font-weight:800;letter-spacing:.11em;color:var(--slate)}
+.wallet .who{font-size:13px;font-weight:700;margin-top:3px;letter-spacing:-.01em}
+.wallet .bal{font-family:var(--mono);font-size:15px;font-weight:700;margin-top:6px;font-variant-numeric:tabular-nums;transition:color .3s}
+.wallet.credit .bal{color:#0A7A63}
+.wallet.rogue{border-color:#F3B4B4;background:var(--red-bg)}
+.wallet.rogue .bal{color:#B91C1C}
+
+.ms-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:18px}
+.ms-list{margin-top:9px;display:flex;flex-direction:column;gap:8px}
+.ms{
+  display:flex;align-items:center;gap:11px;border:1px solid var(--border);border-radius:12px;
+  padding:11px 12px;background:#fff;transition:border-color .3s ease,background .3s ease;text-align:left;width:100%;
+}
+.ms.pickable{cursor:pointer}
+.ms.pickable:hover{border-color:#C9E0FB}
+.ms.current{border-color:#C9E0FB;background:#F5FAFF;box-shadow:0 0 0 3px rgba(0,113,227,.06)}
+.ms.rogue{border-color:#F3B4B4;background:var(--red-bg)}
+.ms-icon{width:24px;height:24px;border-radius:50%;flex:none;display:grid;place-items:center;
+  font-size:12px;font-weight:800;background:#F1F1F4;color:var(--slate);transition:.3s}
+.ms.st-submitted .ms-icon,.ms.st-approved .ms-icon{background:var(--amber-bg);color:#96620A}
+.ms.st-disputed .ms-icon,.ms.st-refund_due .ms-icon{background:var(--red-bg);color:#B91C1C}
+.ms.st-released .ms-icon{background:var(--green-bg);color:#0A7A63}
+.ms-body{flex:1;min-width:0;display:block}
+.ms-name{display:block;font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ms-amt{display:block;font-family:var(--mono);font-size:11px;color:var(--slate);margin-top:2px}
+.ms-note{display:block;font-size:10.5px;font-weight:700;margin-top:2px;color:#96620A}
+.ms-note.red{color:#B91C1C}
+.ms-rules{display:block;font-size:10px;color:var(--slate);margin-top:3px;letter-spacing:.01em}
+.stat{font-size:9.5px;font-weight:800;letter-spacing:.07em;padding:5px 9px;border-radius:999px;
+  white-space:nowrap;background:#F1F1F4;color:var(--slate);flex:none}
+.stat.green{background:var(--green-bg);color:#0A7A63}
+.stat.amber{background:var(--amber-bg);color:#96620A}
+.stat.red{background:var(--red-bg);color:#B91C1C}
+
+.actions{margin-top:16px;display:grid;gap:8px}
+.actions .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.actions .btn{width:100%}
+.window-box{
+  border:1px solid #F6DDB0;background:var(--amber-bg);border-radius:12px;padding:11px 12px;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+}
+.window-box > span{min-width:0}
+.window-box .wl{display:block;font-size:11px;font-weight:700;color:#96620A;letter-spacing:.02em}
+.window-box .wt{display:block;font-family:var(--mono);font-size:14px;font-weight:700;color:#96620A;margin-top:2px}
+.hold-box{border:1px dashed var(--border);border-radius:12px;padding:11px 12px;font-size:11.5px;color:var(--slate)}
+.evidence{display:grid;gap:5px}
+.evidence label{font-size:10px;font-weight:800;letter-spacing:.09em;color:var(--slate)}
+.evidence input{padding:9px 11px;border:1px solid var(--border);border-radius:9px;font-family:var(--mono);font-size:12px}
+.done-note{
+  margin:0;padding:12px 13px;border-radius:12px;background:var(--green-bg);border:1px solid #BEEBDD;
+  color:#0A7A63;font-size:12.5px;font-weight:600;
+}
+.action-hint{margin-top:10px;font-size:11.5px;color:var(--slate);background:#F4F4F6;
+  border:1px solid var(--border);border-radius:10px;padding:9px 11px}
+.rules-link{
+  background:none;border:0;padding:0;color:var(--primary);font-size:11.5px;font-weight:700;text-decoration:underline;
+  text-underline-offset:2px;
+}
+
+/* ============================================================ Network */
+.net-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.net-title{font-size:18px;font-weight:800;letter-spacing:-.02em}
+.net-sub{color:var(--slate);font-size:12.5px;margin-top:2px}
+.net-ind{display:inline-flex;align-items:center;gap:8px;padding:7px 13px;border-radius:999px;font-size:11px;
+  font-weight:800;letter-spacing:.06em;background:var(--green-bg);color:#0A7A63;border:1px solid #BEEBDD;transition:.35s}
+.net-ind.bad{background:var(--red-bg);color:#B91C1C;border-color:#F7C7C7}
+.net-ind.warn{background:var(--amber-bg);color:#96620A;border-color:#F6DDB0}
+
+.node-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+.node{border:1.5px solid var(--border);border-radius:14px;padding:14px;background:#fff;min-width:0;
+  transition:border-color .4s ease,box-shadow .4s ease,background .4s ease}
+.node.accepted{border-color:#BEEBDD;background:#FCFEFD}
+.node.rejected{border-color:var(--red);background:#FFFAFA;box-shadow:0 0 0 4px rgba(239,68,68,.07)}
+.node.disputed{border-color:var(--amber);background:#FFFDF8}
+.node.broadcast{animation:bcast .7s ease}
+@keyframes bcast{0%{box-shadow:0 0 0 0 rgba(0,113,227,.35)}100%{box-shadow:0 0 0 14px rgba(0,113,227,0)}}
+.node-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ndot{width:9px;height:9px;border-radius:50%;background:var(--green);flex:none;transition:background .35s}
+.node.rejected .ndot{background:var(--red)}
+.node.disputed .ndot{background:var(--amber)}
+.node-name{font-weight:800;font-size:13.5px;letter-spacing:-.01em}
+.ntag{font-size:9px;font-weight:800;letter-spacing:.09em;padding:3px 7px;border-radius:999px;background:#F1F1F4;color:var(--slate)}
+.ntag.leader{background:#E8F2FE;color:var(--primary)}
+.ntag.valid{background:var(--green-bg);color:#0A7A63}
+.ntag.rejected{background:var(--red-bg);color:#B91C1C}
+.ntag.outvoted{background:var(--amber-bg);color:#96620A;border:1px solid #F6DDB0}
+.ntag.disputed{background:var(--amber-bg);color:#96620A}
+.node-fp{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--slate);white-space:nowrap}
+.node-fp b{font-weight:700;letter-spacing:.04em}
+.node.rejected .node-fp b{color:#B91C1C}
+
+.strip-wrap{position:relative;margin-top:11px}
+.strip{display:flex;align-items:stretch;gap:5px;overflow-x:auto;padding:3px 2px 9px;
+  scrollbar-width:thin;scrollbar-color:#CFCFD6 transparent}
+.strip::-webkit-scrollbar{height:7px}
+.strip::-webkit-scrollbar-thumb{background:#CFCFD6;border-radius:99px}
+.strip::-webkit-scrollbar-track{background:transparent}
+.strip-fade{position:absolute;right:0;top:0;bottom:9px;width:26px;pointer-events:none;
+  background:linear-gradient(90deg,rgba(255,255,255,0),#fff)}
+.node.rejected .strip-fade{background:linear-gradient(90deg,rgba(255,250,250,0),#FFFAFA)}
+.link{align-self:center;color:#C9C9D1;font-size:12px;flex:none;line-height:1;transition:color .35s}
+.link.broken{color:var(--red);font-weight:700}
+.chip{position:relative;flex:none;width:94px;text-align:left;border:1px solid var(--border);border-radius:9px;
+  background:#fff;padding:9px 8px 8px;overflow:hidden;
+  transition:border-color .4s ease,background .4s ease,box-shadow .18s ease,transform .12s ease}
+.chip::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--green);transition:background .4s ease}
+.chip:hover{box-shadow:0 6px 16px rgba(16,17,20,.13);transform:translateY(-2px)}
+.chip .cidx{display:block;font-family:var(--mono);font-size:10px;font-weight:700;color:var(--slate)}
+.chip .clabel{display:block;font-size:10.5px;font-weight:700;margin-top:2px;letter-spacing:-.01em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip .chash{display:block;font-family:var(--mono);font-size:9.5px;color:var(--slate);margin-top:4px;white-space:nowrap}
+.chip .cbadge{display:block;margin-top:5px;font-size:8px;font-weight:800;letter-spacing:.08em;color:#B91C1C}
+.chip.genesis::before{background:var(--primary)}
+.chip.auto::before{background:var(--amber)}
+.chip.bad{border-color:var(--red);background:var(--red-bg)}
+.chip.bad::before{background:var(--red)}
+.chip.bad .chash{color:#B91C1C}
+/* the break travels down the chain rather than appearing all at once, so you
+   can see that one edit invalidates everything after it */
+.chip.flip{animation:flipred .5s ease both;animation-delay:calc(var(--cb,0) * 65ms)}
+@keyframes flipred{0%{transform:scale(1)}30%{transform:scale(1.12);box-shadow:0 0 0 7px rgba(239,68,68,.22)}
+  100%{transform:scale(1);box-shadow:0 0 0 0 rgba(239,68,68,0)}}
+.link.broken{animation:snapx .4s ease both;animation-delay:calc(var(--cb,0) * 65ms)}
+@keyframes snapx{0%{transform:scale(1) rotate(0)}45%{transform:scale(1.5) rotate(-20deg)}100%{transform:none}}
+.chip.fresh{animation:pop .45s cubic-bezier(.3,1.4,.5,1)}
+@keyframes pop{from{transform:scale(.72);opacity:0}to{transform:scale(1);opacity:1}}
+
+/* covering the tracks: a re-mining wave sweeps left→right across the node */
+.node.remining .chip{animation:remine .5s ease both;animation-delay:calc(var(--ci,0) * 45ms)}
+@keyframes remine{
+  0%{transform:none}
+  45%{transform:translateY(-5px);border-color:var(--primary);
+      box-shadow:0 7px 16px rgba(0,113,227,.32)}
+  100%{transform:none}}
+/* the 51% attack: the forgery visibly propagates through the captured nodes */
+.node.forging .chip{animation:forge .55s ease both;animation-delay:calc(var(--ci,0) * 40ms)}
+@keyframes forge{
+  0%{transform:none}
+  45%{transform:scale(1.10);box-shadow:0 0 0 6px rgba(239,68,68,.20)}
+  100%{transform:none}}
+.node.forging{animation:capture .7s ease}
+@keyframes capture{0%{box-shadow:0 0 0 0 rgba(239,68,68,.45)}100%{box-shadow:0 0 0 16px rgba(239,68,68,0)}}
+/* and the last honest node is left flashing on its own */
+.node.outvoted{animation:outvote 1.1s ease 2}
+@keyframes outvote{0%,100%{box-shadow:0 0 0 4px rgba(239,68,68,.07)}
+  50%{box-shadow:0 0 0 12px rgba(239,68,68,.24)}}
+
+/* ============================================================
+   Tamper mode — two simple steps
+   ============================================================ */
+.tamper{margin-top:16px;border:1.5px dashed #F0B7B7;background:#FFF9F9;border-radius:14px;padding:16px}
+.tamper-head{display:flex;align-items:center;gap:8px;font-weight:800;font-size:12px;letter-spacing:.08em;
+  color:#B91C1C;text-transform:uppercase}
+.tstep{margin-top:14px}
+.tstep-label{font-size:10.5px;font-weight:800;letter-spacing:.09em;color:#B91C1C;text-transform:uppercase}
+.tstep-label span{color:var(--slate);font-weight:600;letter-spacing:0;text-transform:none;margin-left:6px;font-size:11px}
+.atk-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:9px;margin-top:9px}
+.atk{
+  text-align:left;border:1.5px solid var(--border);background:#fff;border-radius:12px;padding:12px 13px;
+  transition:border-color .2s,box-shadow .2s,transform .12s,background .2s;
+}
+.atk:hover:not(:disabled){border-color:#F0B7B7;transform:translateY(-1px);box-shadow:0 6px 16px rgba(185,28,28,.10)}
+.atk[aria-pressed="true"]{border-color:var(--red);background:var(--red-bg);box-shadow:0 0 0 3px rgba(239,68,68,.10)}
+.atk:disabled{opacity:.42}
+.atk .an{display:block;font-size:12.5px;font-weight:700;letter-spacing:-.01em}
+.atk .ad{display:block;font-size:11px;color:var(--slate);margin-top:3px;line-height:1.45}
+.atk .aw{display:block;font-size:10px;color:#96620A;font-weight:700;margin-top:5px}
+.node-pick{display:flex;align-items:center;gap:6px;margin-top:11px;flex-wrap:wrap;font-size:11.5px;color:var(--slate)}
+.npill{border:1px solid var(--border);background:#fff;border-radius:999px;padding:5px 12px;font-size:11.5px;font-weight:700}
+.npill[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.plan{
+  margin-top:11px;background:#fff;border:1px solid #F0B7B7;border-radius:10px;padding:10px 12px;
+  font-size:11.5px;color:#B91C1C;line-height:1.5;
+}
+.plan b{font-family:var(--mono);font-weight:700}
+/* the escalation ladder: three rungs, the next one always obvious */
+.ladder{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:9px}
+.rung{
+  position:relative;text-align:left;border:1.5px solid var(--border);background:#fff;
+  border-radius:12px;padding:12px 13px;transition:border-color .3s,background .3s,box-shadow .3s,transform .12s;
+}
+.rung:hover:not(:disabled){transform:translateY(-1px)}
+.rung:disabled{opacity:.5}
+.rung .rn{
+  display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;border-radius:6px;
+  font-family:var(--mono);font-size:9.5px;font-weight:700;background:#F1F1F4;color:var(--slate);
+  transition:background .3s,color .3s;
+}
+.rung .rt{display:block;font-size:12.5px;font-weight:700;margin-top:7px;letter-spacing:-.01em}
+.rung .rd{display:block;font-size:10.5px;line-height:1.45;color:var(--slate);margin-top:4px}
+.rung[data-state="next"]{border-color:var(--red);background:#FFFCFC}
+.rung[data-state="next"] .rn{background:var(--red);color:#fff}
+.rung[data-state="next"]{animation:rungpulse 2s ease-in-out infinite}
+@keyframes rungpulse{
+  0%,100%{box-shadow:0 0 0 3px rgba(239,68,68,.09)}
+  50%{box-shadow:0 0 0 8px rgba(239,68,68,.15)}}
+.rung[data-state="done"]{border-color:#BEEBDD;background:var(--green-bg)}
+.rung[data-state="done"] .rn{background:var(--green);color:#fff}
+.rung[data-state="done"] .rt::after{content:" ✓";color:#0A7A63}
+.rung[data-state="running"]{border-color:var(--red);background:var(--red-bg)}
+.rung[data-state="running"] .rn{background:var(--red);color:#fff}
+.rung[data-state="running"] .rn::after{
+  content:"";position:absolute;inset:-3px;border-radius:9px;border:2px solid var(--red);
+  border-top-color:transparent;animation:spin .7s linear infinite;
+}
+.tplay{display:flex;align-items:center;gap:11px;margin-top:12px;flex-wrap:wrap}
+.tplay-hint{font-size:11.5px;color:var(--slate)}
+@media (max-width:1000px){ .ladder{grid-template-columns:1fr} }
+.adv{margin-top:14px}
+.adv summary{font-size:11.5px;font-weight:700;color:var(--slate);cursor:pointer}
+.adv summary::marker{color:#C9C9D1}
+.tgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:11px}
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.field > span{font-size:10px;font-weight:800;letter-spacing:.09em;color:var(--slate)}
+.field select,.field input{padding:8px 10px;border:1px solid var(--border);border-radius:9px;background:#fff;
+  font-size:12.5px;width:100%;min-width:0}
+.field input{font-family:var(--mono)}
+
+/* ============================================================ Event log */
+.log-card{margin-top:20px;background:var(--log-bg);border-radius:var(--radius);box-shadow:var(--shadow);
+  overflow:hidden;border:1px solid #141417}
+.log-head{display:flex;align-items:center;gap:10px;padding:12px 18px;border-bottom:1px solid #232329;
+  color:#8A8A95;font-size:10.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase}
+.log-head .dots{display:flex;gap:5px}
+.log-head .dots i{width:9px;height:9px;border-radius:50%;display:block}
+.log-body{font-family:var(--mono);font-size:12px;color:var(--log-ink);padding:14px 18px 16px;max-height:230px;
+  overflow-y:auto;line-height:1.75;scrollbar-width:thin;scrollbar-color:#2E2E36 transparent}
+.log-body::-webkit-scrollbar{width:8px}
+.log-body::-webkit-scrollbar-thumb{background:#2E2E36;border-radius:99px}
+.log-line{white-space:pre-wrap;word-break:break-word;animation:logfade .35s ease}
+@keyframes logfade{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
+.log-line .t{color:#6A6A74}
+.log-line.ok{color:#6EE7B7}
+.log-line.bad{color:#FCA5A5}
+.log-line.warn{color:#FCD34D}
+.log-line.net{color:#7FB6FF}
+
+/* ============================================================ Modals */
+.overlay{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:22px;
+  background:rgba(16,17,20,.48);backdrop-filter:blur(3px);animation:fade .18s ease}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.overlay[hidden]{display:none}
+.modal{background:#fff;border-radius:18px;box-shadow:var(--shadow-lg);width:min(720px,100%);max-height:88vh;
+  overflow:auto;animation:rise .22s cubic-bezier(.3,1.2,.5,1)}
+.modal.wide{width:min(1000px,100%)}
+@keyframes rise{from{transform:translateY(14px) scale(.98);opacity:0}to{transform:none;opacity:1}}
+.modal-head{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:18px 22px;
+  border-bottom:1px solid var(--border);position:sticky;top:0;background:#fff;z-index:2}
+.modal-title{font-size:16px;font-weight:800;letter-spacing:-.02em}
+.modal-body{padding:20px 22px 24px}
+.xbtn{border:1px solid var(--border);background:#fff;width:32px;height:32px;border-radius:9px;display:grid;
+  place-items:center;font-size:16px;color:var(--slate);line-height:1}
+.xbtn:hover{background:#F4F4F6}
+.kv{display:grid;grid-template-columns:130px minmax(0,1fr);gap:10px 14px}
+.kv dt{font-size:10.5px;font-weight:800;letter-spacing:.09em;color:var(--slate);text-transform:uppercase;padding-top:3px}
+.kv dd{margin:0;font-family:var(--mono);font-size:12.5px;word-break:break-all}
+.kv dd.json{background:#F4F4F6;border:1px solid var(--border);border-radius:9px;padding:10px;white-space:pre-wrap}
+.hash-full{background:#F4F4F6;border:1px solid var(--border);border-radius:9px;padding:10px;letter-spacing:.02em}
+.hash-full.good{background:var(--green-bg);border-color:#BEEBDD}
+.hash-full.bad{background:var(--red-bg);border-color:#F7C7C7;color:#B91C1C}
+.verdict{margin-top:16px;border-radius:12px;padding:13px 15px;font-size:12.5px;font-weight:600;display:flex;gap:10px;align-items:flex-start}
+.verdict.good{background:var(--green-bg);color:#0A7A63;border:1px solid #BEEBDD}
+.verdict.bad{background:var(--red-bg);color:#B91C1C;border:1px solid #F7C7C7}
+.verdict.warn{background:var(--amber-bg);color:#96620A;border:1px solid #F6DDB0}
+.verdict .vi{font-size:15px;line-height:1.1}
+
+/* release-rules pseudocode */
+.code{
+  background:#0B0B0D;border-radius:12px;padding:16px 18px;font-family:var(--mono);font-size:12.5px;
+  line-height:1.85;color:#A8A8B3;overflow-x:auto;
+}
+.code .cline{display:block;white-space:pre;border-radius:5px;padding:0 6px;margin:0 -6px;transition:background .3s}
+.code .kw{color:#7FB6FF}
+.code .cm{color:#6A6A74}
+.code .cline.on{background:rgba(16,185,129,.16);color:#DFF7EC}
+.code .cline.on .kw{color:#34D399}
+.code .cline.on::after{content:"   ◀ active now";color:#34D399;font-weight:700}
+.rules-note{margin-top:14px;font-size:12.5px;color:var(--slate);line-height:1.6}
+.rules-note b{color:var(--ink)}
+
+/* ============================================================
+   Why not just a database — a played-out comparison
+   ============================================================ */
+.db-lede{margin:0 0 14px;color:var(--slate);font-size:13px}
+.db-lede b{color:var(--ink)}
+.dsteps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:16px}
+.dstep{
+  text-align:left;border:1px solid var(--border);background:#fff;border-radius:10px;padding:8px 10px;
+  transition:border-color .3s,background .3s,box-shadow .3s;
+}
+.dstep .dsn{font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--slate)}
+.dstep .dst{display:block;font-size:11.5px;font-weight:700;margin-top:2px;letter-spacing:-.01em;color:var(--slate)}
+.dstep[aria-current="true"]{border-color:var(--primary);background:#EDF5FE;box-shadow:0 0 0 3px rgba(0,113,227,.09)}
+.dstep[aria-current="true"] .dst{color:var(--ink)}
+.dstep[aria-current="true"] .dsn{color:var(--primary)}
+
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.vs-col{position:relative;border:1px solid var(--border);border-radius:14px;padding:16px;background:#FBFBFC;overflow:hidden}
+.vs-col.chain{border-color:#BEEBDD;background:#FBFEFC}
+.vs-col h4{margin:0;font-size:14px;font-weight:800;letter-spacing:-.01em}
+.vs-col .sub{font-size:11.5px;color:var(--slate);margin-top:3px;min-height:32px}
+
+.rec{margin-top:12px;border:1px solid var(--border);border-radius:10px;background:#fff;
+  font-family:var(--mono);font-size:12px;overflow:hidden}
+.rec .r{display:flex;justify-content:space-between;gap:10px;padding:8px 11px;
+  border-bottom:1px solid var(--border);transition:background .4s ease}
+.rec .r:last-child{border-bottom:0}
+.rec .r.tgt{position:relative}
+/* the row lights up the moment the admin reaches it */
+.dbstage[data-step="1"] .rec .r.tgt{background:#FFF7E8}
+.dbstage[data-step="2"] .rec .r.tgt,
+.dbstage[data-step="3"] .rec .r.tgt{background:var(--red-bg)}
+.rec .dold{position:relative;transition:opacity .45s ease}
+.dbstage[data-step="2"] .rec .dold,
+.dbstage[data-step="3"] .rec .dold{opacity:.35}
+.dbstage[data-step="2"] .rec .dold::after,
+.dbstage[data-step="3"] .rec .dold::after{
+  content:"";position:absolute;left:-2px;right:-2px;top:50%;height:1.5px;background:var(--red);
+  transform:scaleX(0);transform-origin:left;animation:dstrike .45s ease forwards;
+}
+@keyframes dstrike{to{transform:scaleX(1)}}
+.rec .dnew{opacity:0;color:#B91C1C;font-weight:700;transform:translateX(-6px);
+  transition:opacity .4s .3s ease,transform .4s .3s ease}
+.dbstage[data-step="2"] .rec .dnew,
+.dbstage[data-step="3"] .rec .dnew{opacity:1;transform:none}
+
+/* the admin's cursor, gliding to the row it is about to rewrite */
+.dcursor{
+  position:absolute;left:14px;top:26px;width:14px;height:19px;z-index:5;pointer-events:none;
+  opacity:0;transform:translate(0,0);
+  transition:opacity .35s ease,transform .85s cubic-bezier(.35,.9,.4,1);
+}
+.dcursor svg{display:block;filter:drop-shadow(0 2px 3px rgba(16,17,20,.35))}
+.dbstage[data-step="1"] .dcursor{opacity:1;transform:translate(96px,104px)}
+.dbstage[data-step="2"] .dcursor{opacity:1;transform:translate(96px,104px)}
+.dbstage[data-step="3"] .dcursor{opacity:0;transform:translate(96px,104px)}
+.dbstage[data-step="2"] .dcursor::after{
+  content:"";position:absolute;inset:-6px;border-radius:50%;border:2px solid var(--red);
+  animation:dclick .5s ease forwards;
+}
+@keyframes dclick{from{transform:scale(.35);opacity:1}to{transform:scale(1.5);opacity:0}}
+
+/* hash + chain link, chain column only */
+.dhash{margin-top:10px;font-family:var(--mono);font-size:10px;color:var(--slate);line-height:1.7;word-break:break-all}
+.dhash .hl{display:block;font-size:8.5px;letter-spacing:.11em;text-transform:uppercase;color:#8A8A95}
+.dhash b{color:var(--ink);font-weight:700;transition:color .4s}
+.dbstage[data-step="2"] .dhash .now b,
+.dbstage[data-step="3"] .dhash .now b{color:#B91C1C}
+.dlink{
+  display:flex;align-items:flex-start;gap:8px;margin-top:10px;padding:8px 10px;border-radius:9px;
+  background:var(--green-bg);border:1px solid #BEEBDD;font-family:var(--mono);font-size:10px;
+  line-height:1.6;color:#0A7A63;transition:background .4s,border-color .4s,color .4s;
+}
+.dlink .lk{font-size:13px;line-height:1.2;flex:none}
+/* the hash is 64 chars — it must wrap, not push the modal off a phone screen */
+.dlink > span:last-child{min-width:0;flex:1;word-break:break-all}
+.dbstage[data-step="2"] .dlink,
+.dbstage[data-step="3"] .dlink{background:var(--red-bg);border-color:#F7C7C7;color:#B91C1C}
+.dbstage[data-step="2"] .dlink .lk{animation:snap .5s ease}
+@keyframes snap{0%{transform:none}30%{transform:rotate(-18deg) scale(1.35)}100%{transform:none}}
+
+/* the four validator copies, revealed at the verdict */
+.dnodes{display:flex;align-items:center;gap:5px;margin-top:10px;opacity:0;transform:translateY(6px);
+  transition:opacity .45s ease,transform .45s ease}
+.dbstage[data-step="3"] .dnodes{opacity:1;transform:none}
+.dnode{
+  flex:1;text-align:center;font-family:var(--mono);font-size:9.5px;font-weight:700;padding:6px 0;
+  border-radius:7px;background:var(--green-bg);border:1px solid #BEEBDD;color:#0A7A63;
+}
+.dnode.bad{background:var(--red-bg);border-color:#F7C7C7;color:#B91C1C}
+.dbstage[data-step="3"] .dnode.bad{animation:dshake .5s .35s ease}
+@keyframes dshake{0%,100%{transform:none}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+
+/* the green "no alarm" receipt the database prints, and the verdicts */
+.dstamp{
+  margin-top:10px;border-radius:9px;padding:8px 10px;font-family:var(--mono);font-size:10.5px;
+  font-weight:700;opacity:0;transform:translateY(-5px);transition:opacity .4s ease,transform .4s ease;
+}
+.dstamp.ok{background:var(--green-bg);border:1px solid #BEEBDD;color:#0A7A63}
+.dstamp.no{background:var(--red-bg);border:1px solid #F7C7C7;color:#B91C1C}
+.dbstage[data-step="2"] .dstamp,
+.dbstage[data-step="3"] .dstamp{opacity:1;transform:none}
+.vs-out{margin-top:12px;border-radius:10px;padding:11px 12px;font-size:12px;font-weight:600;min-height:64px;
+  transition:background .4s,color .4s}
+.vs-out.neutral{background:#F4F4F6;color:var(--slate)}
+.vs-out.good{background:var(--green-bg);color:#0A7A63}
+.vs-out.bad{background:var(--red-bg);color:#B91C1C}
+.db-actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;align-items:center}
+.db-hint{font-size:11.5px;color:var(--slate)}
+@media (max-width:620px){ .dsteps{grid-template-columns:1fr 1fr} }
+.vs-foot{margin-top:16px;background:var(--ink);color:#D6E0F0;border-radius:12px;padding:14px 16px;font-size:12.5px;line-height:1.6}
+.vs-foot b{color:#fff}
+
+/* contract builder */
+.b-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.b-field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.b-field > span{font-size:10px;font-weight:800;letter-spacing:.09em;color:var(--slate);text-transform:uppercase}
+.b-field input,.b-field select{padding:9px 11px;border:1px solid var(--border);border-radius:9px;background:#fff;font-size:13px;width:100%}
+.b-sec{margin-top:20px}
+.b-sec h4{margin:0 0 4px;font-size:13px;font-weight:800;letter-spacing:-.01em}
+.b-sec .hint{font-size:11.5px;color:var(--slate);margin:0 0 10px}
+.mrow{border:1px solid var(--border);border-radius:12px;padding:13px;background:#FBFBFC;margin-bottom:10px}
+.mrow-top{display:grid;grid-template-columns:22px minmax(0,1fr) 150px 34px;gap:10px;align-items:end}
+.mnum{width:22px;height:22px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;
+  font-size:10.5px;font-weight:800;margin-bottom:9px}
+.mrow-opts{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px;align-items:center}
+.opt{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:var(--slate);
+  border:1px solid var(--border);background:#fff;border-radius:999px;padding:6px 11px;cursor:pointer}
+.opt input{accent-color:var(--primary);margin:0}
+.opt.on{border-color:#C9E0FB;background:#F3F7FF;color:var(--primary)}
+.opt .days{width:44px;padding:2px 5px;border:1px solid var(--border);border-radius:6px;font-family:var(--mono);
+  font-size:11.5px;text-align:center}
+.mdel{border:1px solid var(--border);background:#fff;border-radius:9px;height:36px;color:var(--slate);font-size:15px}
+.mdel:hover:not(:disabled){background:var(--red-bg);border-color:#F3B4B4;color:#B91C1C}
+.b-total{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;padding:13px 15px;
+  border-radius:12px;background:var(--ink);color:#fff}
+.b-total .lbl{font-size:10.5px;font-weight:800;letter-spacing:.11em;color:#9A9AA5;text-transform:uppercase}
+.b-total .amt{font-family:var(--mono);font-size:19px;font-weight:800}
+.b-err{margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--red-bg);border:1px solid #F7C7C7;
+  color:#B91C1C;font-size:12px;font-weight:600}
+.b-err[hidden]{display:none}
+.b-actions{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+
+/* mining toast */
+.toast{position:fixed;left:50%;top:76px;transform:translateX(-50%);z-index:120;background:var(--ink);color:#fff;
+  border-radius:12px;padding:12px 18px;box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:12px;
+  font-size:13px;font-weight:600;animation:rise .2s ease;max-width:calc(100vw - 32px)}
+.toast[hidden]{display:none}
+.toast .spin{width:15px;height:15px;border-radius:50%;flex:none;border:2.5px solid rgba(255,255,255,.22);
+  border-top-color:var(--green);animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast .nonce{font-family:var(--mono);font-size:12px;color:#7DE0B8;font-variant-numeric:tabular-nums}
+.toast.done .spin{border-top-color:transparent;border-color:var(--green);animation:none}
+
+.footnote{margin-top:16px;text-align:center;font-size:11px;color:var(--slate)}
+.footnote code{font-family:var(--mono);background:#EFEFF2;padding:2px 6px;border-radius:5px}
+
+/* ============================================================ Responsive */
+@media (max-width:1180px){ .tgrid{grid-template-columns:1fr 1fr} .b-grid{grid-template-columns:1fr 1fr} }
+@media (max-width:1000px){
+  /* minmax(0,1fr), not 1fr — an auto-min track lets a wide child push the page */
+  .layout{grid-template-columns:minmax(0,1fr)}
+  .node-grid{grid-template-columns:minmax(0,1fr)}
+  .problem-body{grid-template-columns:1fr;gap:18px}
+  .topbar{flex-wrap:wrap;gap:10px}
+  .topbar-center{order:3;flex-basis:100%;justify-content:flex-start}
+  .vs{grid-template-columns:1fr}
+  .tactions,.tcaptions{grid-template-columns:1fr}
+  .tcaptions p{margin-top:-4px;margin-bottom:6px}
+}
+@media (max-width:620px){
+  .wrap{padding:16px 14px 32px}
+  .card,.problem{padding:16px}
+  .problem h2{font-size:21px}
+  .tgrid,.b-grid{grid-template-columns:1fr}
+  .wallets{grid-template-columns:1fr}
+  .actions .row{grid-template-columns:1fr}
+  .kv{grid-template-columns:1fr}
+  .mrow-top{grid-template-columns:1fr;gap:8px}
+  .mnum{margin-bottom:0}
+}
+
+/* ============================================================
+   Mobile — a sticky bar must not eat a quarter of the screen,
+   and every control has to be reachable with a thumb.
+   ============================================================ */
+@media (max-width:768px){
+  .topbar{padding:9px 14px;gap:9px;row-gap:8px}
+  .tagline{display:none}
+  .mark{width:32px;height:32px}
+  .wordmark em{font-size:21px}
+  .wordmark .wm-c{font-size:9px;letter-spacing:.18em;padding-left:6px}
+  .tag-demo{display:none}
+  .topbar-center{order:0;flex:none;flex-basis:auto;margin-left:auto}
+  .pill{padding:7px 12px;font-size:11.5px}
+  /* controls become one swipeable row instead of wrapping into three */
+  .topbar-right{
+    order:3;width:100%;flex-wrap:nowrap;justify-content:flex-start;
+    overflow-x:auto;-webkit-overflow-scrolling:touch;
+    scrollbar-width:none;padding-bottom:1px;
+  }
+  .topbar-right::-webkit-scrollbar{display:none}
+  .topbar-right > *{flex:none}
+  .modal-head{padding:14px 16px}
+  .modal-body{padding:16px}
+  .log-body{max-height:180px}
+}
+
+/* Touch devices: honour a 44px minimum hit area. */
+@media (pointer:coarse){
+  .btn{min-height:44px}
+  .btn-sm{min-height:38px}
+  .switch{min-height:44px}
+  .xbtn{width:40px;height:40px}
+  .p-collapse{min-height:40px}
+  .rules-link{min-height:40px;display:inline-flex;align-items:center}
+  .npill,.opt,.dstep,.atk{min-height:40px}
+  .mdel{height:44px}
+  .beat{padding:12px}
+  .field select,.field input,.b-field select,.b-field input,.evidence input{min-height:44px}
+  .chip{min-height:64px}
+}
+@media (prefers-reduced-motion:reduce){ *{animation-duration:.001ms !important;transition-duration:.001ms !important} }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <!-- One gesture, one idea: a checkmark that begins sealed inside the block
+         and escapes it. The agreement is settled in the ledger, but its effect
+         reaches beyond the page. Reads at 16px, works in a single colour. -->
+    <svg class="mark" width="36" height="36" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <rect x="1" y="6" width="29" height="29" rx="8.5" fill="#101114"/>
+      <path d="M8.6 21.4l5.9 5.9 13.1-13.1" stroke="#FFFFFF" stroke-width="4.2"
+            stroke-linecap="round" stroke-linejoin="round"/>
+      <path class="mark-tail" d="M27.6 14.2L36.8 4.6" stroke="#0071E3" stroke-width="4.2" stroke-linecap="round"/>
+    </svg>
+    <div class="brand-text">
+      <!-- the human agreement, set in a serif; the machine that executes it, in mono -->
+      <span class="wordmark"><em>Smart</em><span class="wm-c">Contract</span></span>
+      <span class="tagline">A deal neither side can cheat.</span>
+    </div>
+    <span class="tag-demo">ESCROW DEMO</span>
+  </div>
+
+  <div class="topbar-center">
+    <div class="pill ok" id="statusPill" role="status" aria-live="polite">
+      <span class="pdot"></span><span id="statusText">SYNCED</span><span class="pcount" id="statusCount">4 / 4</span>
+    </div>
+  </div>
+
+  <div class="topbar-right">
+    <button class="switch" id="tamperToggle" aria-pressed="false">
+      <span class="track"><span class="knob"></span></span>
+      Tamper Mode
+    </button>
+    <button class="btn" id="btnNewContract">New contract</button>
+    <button class="btn" id="btnWhyDb">Why not just a database?</button>
+    <button class="btn" id="btnReset">Reset</button>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- ========================= PROBLEM STATEMENT ========================= -->
+  <section class="problem" id="problem" aria-labelledby="problemHeading">
+    <div class="p-top">
+      <div>
+        <div class="p-eyebrow">&#10022; The problem</div>
+        <h2 id="problemHeading">In every deal, someone has to go first.</h2>
+        <p class="p-lede">Escrow was meant to fix that. It just moved the risk into one company&rsquo;s database.</p>
+      </div>
+      <button class="p-collapse" id="problemToggle" aria-expanded="true">Collapse</button>
+    </div>
+
+    <div class="p-body">
+      <div>
+        <div class="beats" id="beats" role="tablist" aria-label="How the problem unfolds"></div>
+        <div class="bprog" id="beatProgress"><i></i></div>
+      </div>
+
+      <div class="stage" id="stage" data-beat="0" aria-hidden="true">
+        <div class="actor buyer">
+          <span class="ico">&#8377;</span>
+          <span class="nm">Buyer</span>
+          <span class="sub">Meridian</span>
+        </div>
+
+        <div class="mid">
+          <!-- beat 0 — the stand-off: both directions carry the same exposure -->
+          <div class="layer stall">
+            <span class="risk r1">pay first &rarr; exposed</span>
+            <span class="q">?</span>
+            <span class="risk r2">deliver first &rarr; exposed</span>
+            <span class="qc">deadlock</span>
+          </div>
+
+          <!-- beats 1 &amp; 2 — the custodian's single row, and the edit -->
+          <div class="layer vault">
+            <div class="vh"><span>&#9919; Escrow database</span><span class="vtrust">both sides trust it</span></div>
+            <div class="vr">
+              <span>escrow_amount</span>
+              <span><b class="vold">6,00,000</b> <b class="vnew">3,00,000</b></span>
+            </div>
+            <div class="vf">1 server &middot; 1 admin &middot; no history</div>
+            <span class="vcursor">
+              <svg width="13" height="17" viewBox="0 0 14 19" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M1 1l11 8-5 1 2.5 6L7 17.5 4.5 11 1 14V1z" fill="#fff" stroke="#101114" stroke-width="1.2" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span class="vreceipt">&#10003; UPDATE 1 row</span>
+          </div>
+
+          <!-- beat 3 — replicated and chained, each copy carrying its own hash -->
+          <div class="layer mesh">
+            <div class="p-mrow">
+              <span class="mnode">A<i>9f2c</i></span><span class="mlink"></span>
+              <span class="mnode bad">B<i>4a17</i></span><span class="mlink snap"></span>
+              <span class="mnode">C<i>9f2c</i></span><span class="mlink"></span>
+              <span class="mnode">D<i>9f2c</i></span>
+            </div>
+            <span class="mverdict">3 / 4 agree &mdash; &#8377;6,00,000 stands &#10003;</span>
+          </div>
+        </div>
+
+        <div class="actor seller">
+          <span class="ico">&#9636;</span>
+          <span class="nm">Seller</span>
+          <span class="sub">Nova</span>
+        </div>
+
+        <span class="wire"></span>
+        <span class="p-rail"><span class="pulse"></span></span>
+      </div>
+    </div>
+  </section>
+
+  <div class="layout">
+
+    <!-- ========================= CONTRACT ========================= -->
+    <section class="card" aria-labelledby="contractHeading">
+      <div class="eyebrow">Smart-contract escrow</div>
+      <h1 class="contract-title" id="contractHeading">Meridian &harr; Nova</h1>
+      <div class="contract-sub" id="contractSub">Store Fit-Out Agreement &middot; 3 milestones</div>
+      <div class="parties" id="parties"></div>
+
+      <div class="escrow-box">
+        <div class="escrow-label">Locked in escrow</div>
+        <div class="escrow-amount" id="escrowAmount">&#8377;0</div>
+        <div class="bar" id="escrowBar"><i></i></div>
+        <div class="escrow-caption" id="escrowCaption">not funded yet</div>
+      </div>
+
+      <p class="ledger-alert" id="ledgerAlert" role="alert" hidden></p>
+
+      <div class="wallets">
+        <div class="wallet" id="walletBuyer">
+          <div class="role">BUYER</div>
+          <div class="who" id="buyerName">Meridian Retail</div>
+          <div class="bal" id="buyerBal">&#8377;0</div>
+        </div>
+        <div class="wallet credit" id="walletSeller">
+          <div class="role">SELLER</div>
+          <div class="who" id="sellerName">Nova Interiors</div>
+          <div class="bal" id="sellerBal">&#8377;0</div>
+        </div>
+      </div>
+
+      <div class="ms-head">
+        <span class="eyebrow">Milestones</span>
+        <button class="rules-link" id="btnRules">Release rules &#9656;</button>
+      </div>
+      <div class="ms-list" id="msList"></div>
+
+      <div class="actions" id="actionArea"></div>
+      <p class="action-hint" id="actionHint"></p>
+    </section>
+
+    <!-- ========================= NETWORK ========================= -->
+    <section class="card" aria-labelledby="netHeading">
+      <div class="net-head">
+        <div>
+          <div class="net-title" id="netHeading">Decentralised network</div>
+          <div class="net-sub">4 validator nodes &middot; each holds a full copy of the chain</div>
+        </div>
+        <div class="net-ind" id="netInd">ALL COPIES MATCH</div>
+      </div>
+
+      <div class="node-grid" id="nodeGrid"></div>
+
+      <div class="tamper" id="tamperPanel" hidden>
+        <div class="tamper-head">&#9888; Tamper mode &mdash; two clicks to try to cheat the ledger</div>
+
+        <div class="tstep">
+          <div class="tstep-label">Step 1 <span>Pick what the attacker wants to change</span></div>
+          <div class="atk-grid" id="atkGrid"></div>
+          <div class="node-pick" id="nodePick"></div>
+        </div>
+
+        <div class="tstep">
+          <div class="tstep-label">Step 2 <span>How far do they go? Each rung is harder than the last.</span></div>
+          <div class="plan" id="tamperPlan"></div>
+
+          <div class="ladder" id="ladder">
+            <button class="rung" id="btnTamper"
+              title="Edits the block and re-mines only that block's own hash. The next block still points at the OLD hash, so the link snaps.">
+              <span class="rn">01</span>
+              <span class="rt">Edit one block</span>
+              <span class="rd">The hash link breaks. That block and every later one turn red, the node is <b>REJECTED</b>, consensus falls to 3/4.</span>
+            </button>
+            <button class="rung" id="btnRemine"
+              title="Recomputes prevHash + hash for every block after the edit, so this node's copy is internally consistent again — but it no longer matches anyone else's copy.">
+              <span class="rn">02</span>
+              <span class="rt">Cover the tracks</span>
+              <span class="rd">Re-mines the whole chain, so the node is valid again &mdash; and <b>still rejected</b>, because 3 others hold a different history.</span>
+            </button>
+            <button class="rung" id="btnAttack"
+              title="The attacker captures enough nodes to hold a majority — their own node plus two more — and applies the same forged edit to all of them. Three of four copies now agree on the lie, so the network accepts it. The remaining honest node is outvoted.">
+              <span class="rn">03</span>
+              <span class="rt">51% attack</span>
+              <span class="rd">Corrupts the majority. The fraud becomes &ldquo;truth&rdquo;, the honest node is outvoted, and the contract rewrites itself.</span>
+            </button>
+          </div>
+
+          <div class="tplay">
+            <button class="btn btn-danger-solid" id="btnPlayAttack">&#9654;&nbsp; Play the whole attack</button>
+            <span class="tplay-hint" id="tplayHint">One click runs all three rungs in order &mdash; or click them yourself.</span>
+          </div>
+        </div>
+
+        <details class="adv">
+          <summary>Advanced &mdash; edit any field on any block manually</summary>
+          <div class="tgrid">
+            <label class="field"><span>NODE</span><select id="tNode"></select></label>
+            <label class="field"><span>BLOCK</span><select id="tBlock"></select></label>
+            <label class="field"><span>FIELD</span><select id="tField"></select></label>
+            <label class="field"><span>NEW VALUE</span><input id="tValue" spellcheck="false" /></label>
+          </div>
+        </details>
+      </div>
+    </section>
+  </div>
+
+  <!-- ========================= EVENT LOG ========================= -->
+  <section class="log-card" aria-label="Event log">
+    <div class="log-head">
+      <span class="dots"><i style="background:#EF4444"></i><i style="background:#F59E0B"></i><i style="background:#10B981"></i></span>
+      Event log
+    </div>
+    <div class="log-body" id="logBody"></div>
+  </section>
+
+  <p class="footnote">
+    Every hash on this page is a real SHA-256 digest computed in your browser
+    (<code>crypto.subtle.digest</code>). Nothing is pre-baked. <span id="cryptoNote"></span>
+  </p>
+</div>
+
+<div class="toast" id="toast" hidden>
+  <span class="spin"></span>
+  <span id="toastText">Mining block</span>
+  <span class="nonce" id="toastNonce"></span>
+</div>
+
+<!-- block detail -->
+<div class="overlay" id="blockOverlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="blockModalTitle">
+    <div class="modal-head">
+      <div class="modal-title" id="blockModalTitle">Block</div>
+      <button class="xbtn" data-close aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-body" id="blockModalBody"></div>
+  </div>
+</div>
+
+<!-- release rules -->
+<div class="overlay" id="rulesOverlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
+    <div class="modal-head">
+      <div class="modal-title" id="rulesTitle">Release rules &mdash; what the contract does on its own</div>
+      <button class="xbtn" data-close aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-body" id="rulesBody"></div>
+  </div>
+</div>
+
+<!-- why not a database -->
+<div class="overlay" id="dbOverlay" hidden>
+  <div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="dbTitle">
+    <div class="modal-head">
+      <div class="modal-title" id="dbTitle">Why not just a database?</div>
+      <button class="xbtn" data-close aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p class="db-lede">
+        Same contract. Same dishonest edit &mdash; <b>escrow &#8377;6,00,000 &rarr; &#8377;3,00,000</b>.
+        Watch, step by step, what each system does about it.
+      </p>
+
+      <div class="dsteps" id="dbSteps"></div>
+
+      <div class="vs dbstage" id="dbStage" data-step="0">
+        <!-- ---------------- central database ---------------- -->
+        <div class="vs-col">
+          <h4>Central database</h4>
+          <div class="sub">One server. One admin. One row.</div>
+          <div class="rec" id="dbRec"></div>
+          <span class="dcursor">
+            <svg width="14" height="19" viewBox="0 0 14 19" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M1 1l11 8-5 1 2.5 6L7 17.5 4.5 11 1 14V1z" fill="#101114" stroke="#fff" stroke-width="1.2" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <div class="dstamp ok" id="dbStamp">&#10003; UPDATE 1 row affected</div>
+          <div class="vs-out neutral" id="dbOut">Waiting for the edit&hellip;</div>
+        </div>
+
+        <!-- ---------------- the chain ---------------- -->
+        <div class="vs-col chain">
+          <h4>Smart Contract</h4>
+          <div class="sub">4 independent copies. Every block sealed by the one before it.</div>
+          <div class="rec" id="chRec"></div>
+          <div class="dhash">
+            <span class="now"><span class="hl">Block #1 hash, recomputed live</span><b id="chHashNow">&hellip;</b></span>
+          </div>
+          <div class="dlink" id="chLink">
+            <span class="lk">&#128279;</span>
+            <span>block #2 still points at <b id="chHashOld">&hellip;</b></span>
+          </div>
+          <div class="dnodes">
+            <span class="dnode">A &#10003;</span><span class="dnode bad">B &#10007;</span>
+            <span class="dnode">C &#10003;</span><span class="dnode">D &#10003;</span>
+          </div>
+          <div class="vs-out neutral" id="chOut">Waiting for the edit&hellip;</div>
+        </div>
+      </div>
+
+      <div class="db-actions">
+        <button class="btn btn-primary" id="btnDbPlay">Replay &#9656;</button>
+        <span class="db-hint" id="dbHint">Playing automatically &mdash; click any step above to jump.</span>
+      </div>
+
+      <div class="vs-foot">
+        <b>The point:</b> a database asks <i>&ldquo;are you allowed to write?&rdquo;</i> &mdash; a blockchain asks
+        <i>&ldquo;does everyone already agree on what was written?&rdquo;</i>
+        Fraud in the first needs one compromised admin. Fraud in the second needs a majority of independent validators to
+        collude at the same instant &mdash; and it still leaves the honest minority screaming.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- contract builder -->
+<div class="overlay" id="builderOverlay" hidden>
+  <div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="builderTitle">
+    <div class="modal-head">
+      <div class="modal-title" id="builderTitle">Design your own deal</div>
+      <button class="xbtn" data-close aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p style="margin:0 0 16px;color:var(--slate);font-size:13px">
+        Set the parties and define what each milestone requires before money can move. These terms are written
+        into <b style="color:var(--ink)">block #0</b> and replicated to all four nodes &mdash; so the rules themselves
+        are as tamper-evident as the payments.
+      </p>
+
+      <div class="b-grid">
+        <label class="b-field"><span>Buyer</span><input id="bBuyer" spellcheck="false"></label>
+        <label class="b-field"><span>Seller</span><input id="bSeller" spellcheck="false"></label>
+        <label class="b-field"><span>Arbiter (neutral third party)</span><input id="bArbiter" spellcheck="false"></label>
+      </div>
+      <div class="b-grid" style="margin-top:12px">
+        <label class="b-field" style="grid-column:span 2"><span>Agreement title</span><input id="bTitle" spellcheck="false"></label>
+        <label class="b-field"><span>Milestone order</span>
+          <select id="bSequential">
+            <option value="yes">Must complete in order</option>
+            <option value="no">Any order</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="b-sec">
+        <h4>Milestones &amp; prerequisites</h4>
+        <p class="hint">Each milestone releases its own slice of the escrow, and only once its prerequisites are met.</p>
+        <div id="bMilestones"></div>
+        <button class="btn btn-sm" id="bAdd">+ Add milestone</button>
+      </div>
+
+      <div class="b-total">
+        <span class="lbl">Total to be held in escrow</span>
+        <span class="amt" id="bTotal">&#8377;0</span>
+      </div>
+
+      <p class="b-err" id="bErr" hidden></p>
+
+      <div class="b-actions">
+        <button class="btn btn-primary" id="bDeploy">Deploy contract &amp; mine genesis &#9656;</button>
+        <button class="btn" id="bLoadDemo">Load the demo contract</button>
+        <button class="btn" data-close>Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ============================================================================
+   Smart Contract — tamper-evident milestone escrow
+   Vanilla JS · no build step · real SHA-256 via Web Crypto
+   ============================================================================ */
+
+/* ---------------------------------------------------------------- CONSTANTS */
+const DIFFICULTY   = 2;
+const POW_PREFIX   = "0".repeat(DIFFICULTY);
+const GENESIS_PREV = "0".repeat(64);
+const DAY_MS       = 86400000;
+const NODE_DEFS    = [
+  { id:"A", role:"leader"    },
+  { id:"B", role:"validator" },
+  { id:"C", role:"validator" },
+  { id:"D", role:"validator" }
+];
+
+/* The default scenario. Any of this can be replaced from the contract builder. */
+const DEMO_CONTRACT = {
+  buyer:"Meridian Retail",
+  seller:"Nova Interiors",
+  arbiter:"Sethi & Rao (Arbiter)",
+  title:"Store Fit-Out Agreement",
+  sequential:true,
+  milestones:[
+    { name:"Design approved",       amount:200000, needsApproval:true, autoReleaseDays:7, allowDispute:true, requiresEvidence:false },
+    { name:"Materials delivered",   amount:200000, needsApproval:true, autoReleaseDays:7, allowDispute:true, requiresEvidence:false },
+    { name:"Installation complete", amount:200000, needsApproval:true, autoReleaseDays:7, allowDispute:true, requiresEvidence:false }
+  ]
+};
+
+/* ------------------------------------------------------- SHA-256 (Web Crypto) */
+const HAS_SUBTLE = !!(typeof crypto !== "undefined" && crypto.subtle && crypto.subtle.digest);
+
+async function sha256(text){
+  if (HAS_SUBTLE){
+    const buf = new TextEncoder().encode(text);
+    const digest = await crypto.subtle.digest("SHA-256", buf);
+    return [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2,"0")).join("");
+  }
+  return sha256Fallback(text);
+}
+
+/* Pure-JS SHA-256 — byte-identical to crypto.subtle. Safety net for exotic
+   browser/file:// combinations. Real SHA-256, never faked. */
+const SHA_K = [
+  0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+  0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+  0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+  0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+  0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+  0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+  0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+  0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2
+];
+function rotr(x,n){ return (x>>>n) | (x<<(32-n)); }
+function sha256Fallback(str){
+  let H = [0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+  const bytes = Array.from(new TextEncoder().encode(str));
+  const bitLen = bytes.length * 8;
+  bytes.push(0x80);
+  while (bytes.length % 64 !== 56) bytes.push(0);
+  const hi = Math.floor(bitLen / 4294967296), lo = bitLen >>> 0;
+  bytes.push((hi>>>24)&255,(hi>>>16)&255,(hi>>>8)&255,hi&255,(lo>>>24)&255,(lo>>>16)&255,(lo>>>8)&255,lo&255);
+  const w = new Array(64);
+  for (let i=0;i<bytes.length;i+=64){
+    for (let t=0;t<16;t++) w[t] = (bytes[i+t*4]<<24)|(bytes[i+t*4+1]<<16)|(bytes[i+t*4+2]<<8)|bytes[i+t*4+3];
+    for (let t=16;t<64;t++){
+      const s0 = rotr(w[t-15],7) ^ rotr(w[t-15],18) ^ (w[t-15]>>>3);
+      const s1 = rotr(w[t-2],17) ^ rotr(w[t-2],19) ^ (w[t-2]>>>10);
+      w[t] = (w[t-16] + s0 + w[t-7] + s1) | 0;
+    }
+    let a=H[0],b=H[1],c=H[2],d=H[3],e=H[4],f=H[5],g=H[6],h=H[7];
+    for (let t=0;t<64;t++){
+      const S1 = rotr(e,6) ^ rotr(e,11) ^ rotr(e,25);
+      const ch = (e & f) ^ (~e & g);
+      const t1 = (h + S1 + ch + SHA_K[t] + w[t]) | 0;
+      const S0 = rotr(a,2) ^ rotr(a,13) ^ rotr(a,22);
+      const maj = (a & b) ^ (a & c) ^ (b & c);
+      const t2 = (S0 + maj) | 0;
+      h=g; g=f; f=e; e=(d+t1)|0; d=c; c=b; b=a; a=(t1+t2)|0;
+    }
+    H = [ (H[0]+a)|0,(H[1]+b)|0,(H[2]+c)|0,(H[3]+d)|0,(H[4]+e)|0,(H[5]+f)|0,(H[6]+g)|0,(H[7]+h)|0 ];
+  }
+  return H.map(x => (x>>>0).toString(16).padStart(8,"0")).join("");
+}
+
+/* ------------------------------------------------------------- BLOCK PRIMITIVES */
+function preimage(block){
+  return String(block.index) + String(block.timestamp) + JSON.stringify(block.data) +
+         String(block.nonce) + String(block.prevHash);
+}
+function recomputeHash(block){ return sha256(preimage(block)); }
+
+/* Proof of work: raise the nonce until the hash begins with "00".
+   The search runs uninterrupted (a few ms at difficulty 2); the on-screen
+   counter afterwards replays the nonces that were actually tried. Yielding
+   inside the loop would stall for seconds when the browser throttles timers. */
+async function mineBlock(block){
+  block.nonce = 0;
+  for(;;){
+    const h = await recomputeHash(block);
+    if (h.startsWith(POW_PREFIX)){ block.hash = h; return block; }
+    block.nonce++;
+  }
+}
+
+/* First structurally invalid index, or -1 when the chain checks out. */
+async function validateChain(chain){
+  for (let i=0;i<chain.length;i++){
+    const b = chain[i];
+    if (b.hash !== await recomputeHash(b)) return i;         // contents changed after mining
+    if (i > 0 && b.prevHash !== chain[i-1].hash) return i;    // link to the past is broken
+  }
+  return -1;
+}
+function fingerprintSeed(chain){ return chain.map(b => b.hash).join("|"); }
+const clone = o => JSON.parse(JSON.stringify(o));
+
+/* ------------------------------------------------------------------ APP STATE */
+let nodes = [];
+let honestChain = [];
+let logEntries = [];
+let lastChipState = {};
+let freshIndex = -1;
+let nodeFx = {};           // node id -> one-shot animation class for the next render
+let busy = false;
+/* Some contract rules mine two blocks in a row (expire → pay, rule → execute).
+   Controls must stay locked across the whole sequence, not just each block —
+   otherwise a click in the gap can race the contract and pay twice. */
+let opDepth = 0;
+let tamperMode = false;
+let tamperKey = null;
+let lastAcceptedChain = [];
+let activeContract = clone(DEMO_CONTRACT);
+let selectedMsId = null;      // only used when milestones may run in any order
+let evidenceDraft = "";
+let clockOffset = 0;          // simulated time, so a 7-day window fits in a viva
+
+const now = () => Date.now() + clockOffset;
+
+/* --------------------------------------------------------------- FORMATTING */
+function inr(n){
+  const neg = n < 0;
+  let s = String(Math.abs(Math.round(n)));
+  if (s.length > 3){
+    const last3 = s.slice(-3);
+    const rest  = s.slice(0,-3).replace(/\B(?=(\d{2})+(?!\d))/g, ",");
+    s = rest + "," + last3;
+  }
+  return (neg ? "-₹" : "₹") + s;
+}
+function lakh(n){
+  const l = n / 100000;
+  if (Math.abs(l) < 1) return "₹" + Math.round(n/1000) + "K";
+  const txt = Number.isInteger(l) ? String(l) : l.toFixed(2).replace(/\.?0+$/,"");
+  return "₹" + txt + "L";
+}
+function shortHash(h){ return h ? h.slice(0,4) + "…" + h.slice(-4) : "—"; }
+function clockNow(){
+  const d = new Date(now());
+  return String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0");
+}
+function timeOf(ts){
+  const d = new Date(ts);
+  return d.toLocaleDateString(undefined,{day:"2-digit",month:"short"}) + " " +
+         String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0");
+}
+function durationText(ms){
+  if (ms <= 0) return "0h";
+  const d = Math.floor(ms / DAY_MS);
+  const h = Math.floor((ms % DAY_MS) / 3600000);
+  return d > 0 ? d + "d " + h + "h" : h + "h " + Math.floor((ms % 3600000)/60000) + "m";
+}
+function esc(s){
+  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function firstName(s){ return String(s || "").split(/[\s&]+/)[0]; }
+const $ = id => document.getElementById(id);
+
+/* ------------------------------------------------------------------ EVENT LOG */
+function log(text, kind){ logEntries.push({ time:clockNow(), text, kind:kind||"" }); renderLog(); }
+function logRaw(text, kind){ logEntries.push({ time:null, text, kind:kind||"" }); renderLog(); }
+function renderLog(){
+  const body = $("logBody");
+  body.innerHTML = logEntries.map(e =>
+    '<div class="log-line ' + e.kind + '">' +
+      (e.time ? '<span class="t">» ' + e.time + '</span>  ' : '') + esc(e.text) +
+    '</div>').join("");
+  body.scrollTop = body.scrollHeight;
+}
+
+/* ------------------------------------------------------------- BLOCK LABELLING */
+function blockLabel(d){
+  switch(d.event){
+    case "CONTRACT_SIGNED":     return "SIGNED";
+    case "ESCROW_FUNDED":       return "FUNDED " + lakh(d.amount);
+    case "MILESTONE_SUBMITTED": return "M" + d.milestone + " SUBMIT";
+    case "MILESTONE_APPROVED":  return "M" + d.milestone + " APPROVE";
+    case "MILESTONE_DISPUTED":  return "M" + d.milestone + " DISPUTE";
+    case "ARBITER_RULED":       return "M" + d.milestone + " RULING";
+    case "WINDOW_EXPIRED":      return "M" + d.milestone + " TIMEOUT";
+    case "PAYMENT_RELEASED":    return "M" + d.milestone + " PAY " + lakh(d.amount);
+    case "PAYMENT_REFUNDED":    return "M" + d.milestone + " REFUND";
+    default:                    return String(d.event || "BLOCK");
+  }
+}
+function blockTitle(d){
+  switch(d.event){
+    case "CONTRACT_SIGNED":     return "Contract signed";
+    case "ESCROW_FUNDED":       return "Escrow funded";
+    case "MILESTONE_SUBMITTED": return "Milestone " + d.milestone + " submitted";
+    case "MILESTONE_APPROVED":  return "Milestone " + d.milestone + " approved";
+    case "MILESTONE_DISPUTED":  return "Milestone " + d.milestone + " disputed";
+    case "ARBITER_RULED":       return "Arbiter ruled on milestone " + d.milestone;
+    case "WINDOW_EXPIRED":      return "Approval window expired";
+    case "PAYMENT_RELEASED":    return "Payment released";
+    case "PAYMENT_REFUNDED":    return "Payment refunded";
+    default:                    return "Block";
+  }
+}
+const AUTO_EVENTS = ["WINDOW_EXPIRED","ARBITER_RULED"];
+
+/* ====================================================================
+   DERIVE CONTRACT STATE BY REPLAYING THE ACCEPTED CHAIN
+   Nothing about the contract is stored anywhere else, which is exactly
+   why a successful attack visibly rewrites the deal on screen.
+   ==================================================================== */
+function deriveState(chain, nowMs){
+  const t = (nowMs === undefined) ? now() : nowMs;
+  const st = {
+    signed:false, buyer:"", seller:"", arbiter:"", title:"", sequential:true,
+    total:0, escrow:0, released:0, refunded:0, fundedAmount:0,
+    buyerOpening:0, buyerWallet:0, sellerWallet:0,
+    diverted:0, rogueName:null, funded:false, milestones:[]
+  };
+  const ms = id => st.milestones.find(m => m.id === id);
+
+  for (const b of chain){
+    const d = b.data || {};
+    switch(d.event){
+      case "CONTRACT_SIGNED":
+        st.signed = true;
+        st.buyer = d.buyer; st.seller = d.seller; st.arbiter = d.arbiter; st.title = d.title;
+        st.sequential = !!d.sequential;
+        st.total = Number(d.total) || 0;
+        st.buyerOpening = Number(d.buyerOpening) || 0;
+        st.buyerWallet  = st.buyerOpening;
+        st.milestones = (d.milestones || []).map((m,i) => ({
+          id: m.id != null ? m.id : i+1,
+          name: m.name, amount: Number(m.amount) || 0,
+          needsApproval: !!m.needsApproval,
+          autoReleaseDays: Number(m.autoReleaseDays) || 0,
+          allowDispute: !!m.allowDispute,
+          requiresEvidence: !!m.requiresEvidence,
+          status:"locked", deadline:null, evidence:null,
+          paidTo:null, trigger:null, ruling:null, disputeReason:null
+        }));
+        break;
+
+      case "ESCROW_FUNDED":
+        st.escrow += Number(d.amount) || 0;
+        st.fundedAmount += Number(d.amount) || 0;
+        st.buyerWallet -= Number(d.amount) || 0;
+        st.funded = true;
+        break;
+
+      case "MILESTONE_SUBMITTED": {
+        const m = ms(d.milestone); if (!m) break;
+        m.evidence = d.evidence || null;
+        m.deadline = d.deadline != null ? Number(d.deadline) : null;
+        // No approval required → the prerequisite is satisfied on submission.
+        m.status = m.needsApproval ? "submitted" : "approved";
+        if (!m.needsApproval) m.trigger = "no-approval-required";
+        break;
+      }
+      case "MILESTONE_APPROVED": {
+        const m = ms(d.milestone); if (!m) break;
+        m.status = "approved"; m.trigger = "approval";
+        break;
+      }
+      case "MILESTONE_DISPUTED": {
+        const m = ms(d.milestone); if (!m) break;
+        m.status = "disputed"; m.disputeReason = d.reason || null;
+        break;
+      }
+      case "ARBITER_RULED": {
+        const m = ms(d.milestone); if (!m) break;
+        m.ruling = d.ruling;
+        m.status = d.ruling === "seller" ? "approved" : "refund_due";
+        m.trigger = "arbiter";
+        break;
+      }
+      case "WINDOW_EXPIRED": {                        // silence = acceptance
+        const m = ms(d.milestone); if (!m) break;
+        m.status = "approved"; m.trigger = "timeout";
+        break;
+      }
+      case "PAYMENT_RELEASED": {
+        const amt = Number(d.amount) || 0;
+        st.escrow -= amt; st.released += amt;
+        if (d.to === st.seller) st.sellerWallet += amt;
+        else { st.diverted += amt; st.rogueName = d.to; }
+        const m = ms(d.milestone);
+        if (m){ m.status = "released"; m.amount = amt; m.paidTo = d.to; if (d.trigger) m.trigger = d.trigger; }
+        break;
+      }
+      case "PAYMENT_REFUNDED": {
+        const amt = Number(d.amount) || 0;
+        st.escrow -= amt; st.refunded += amt; st.buyerWallet += amt;
+        const m = ms(d.milestone);
+        if (m){ m.status = "refunded"; m.amount = amt; m.paidTo = d.to; }
+        break;
+      }
+    }
+  }
+
+  // Time-dependent view: has any open approval window run out?
+  for (const m of st.milestones){
+    m.windowClosed = m.status === "submitted" && m.autoReleaseDays > 0 &&
+                     m.deadline != null && t >= m.deadline;
+    m.timeLeft = (m.status === "submitted" && m.deadline != null) ? m.deadline - t : null;
+  }
+
+  st.settled     = st.released + st.refunded;
+  st.shortfall   = Math.max(0, st.settled - st.fundedAmount);
+  st.underfunded = st.funded && st.fundedAmount !== st.total;
+  st.inconsistent= st.shortfall > 0 || st.escrow < 0;
+  st.open        = st.milestones.filter(m => m.status !== "released" && m.status !== "refunded");
+  st.complete    = st.signed && st.milestones.length > 0 && st.open.length === 0;
+  return st;
+}
+
+/* Which milestone the action panel is driving. */
+function activeMilestone(st){
+  if (!st.open.length) return null;
+  if (st.sequential) return st.open[0];
+  const picked = st.milestones.find(m => m.id === selectedMsId);
+  return (picked && st.open.includes(picked)) ? picked : st.open[0];
+}
+
+/* Which branch of the release rules is live right now. */
+function activeBranch(m){
+  if (!m) return null;
+  if (m.status === "locked")     return "submit";
+  if (m.status === "disputed")   return "dispute";
+  if (m.status === "refund_due") return "dispute";
+  if (m.status === "approved")   return m.trigger === "timeout" ? "timeout" : "approve";
+  if (m.status === "submitted")  return m.windowClosed ? "timeout" : "hold";
+  return null;
+}
+
+/* ------------------------------------------------------------------- CONSENSUS */
+async function analyseNetwork(){
+  const infos = [];
+  // fingerprint of the ledger as it was legitimately mined — used only to tell
+  // "this node is corrupt" apart from "this node is honest but outnumbered"
+  const honestFp = honestChain.length ? await sha256(fingerprintSeed(honestChain)) : null;
+  for (const n of nodes){
+    const firstInvalid = await validateChain(n.chain);
+    const fingerprint  = await sha256(fingerprintSeed(n.chain));
+    let displayBad = firstInvalid;
+    if (n.tamperFrom !== null && n.tamperFrom !== undefined){
+      displayBad = firstInvalid === -1 ? n.tamperFrom : Math.min(firstInvalid, n.tamperFrom);
+    }
+    infos.push({ node:n, firstInvalid, fingerprint, displayBad, valid: firstInvalid === -1,
+                 honest: honestFp !== null && fingerprint === honestFp });
+  }
+
+  const groups = new Map();
+  for (const info of infos){
+    if (!info.valid) continue;
+    if (!groups.has(info.fingerprint)) groups.set(info.fingerprint, []);
+    groups.get(info.fingerprint).push(info);
+  }
+  const ranked = [...groups.values()].sort((a,b) => {
+    if (b.length !== a.length) return b.length - a.length;
+    const aLead = a.some(i => i.node.role === "leader") ? 1 : 0;
+    const bLead = b.some(i => i.node.role === "leader") ? 1 : 0;
+    if (aLead !== bLead) return bLead - aLead;
+    return a[0].node.id.localeCompare(b[0].node.id);
+  });
+
+  const majority   = ranked[0] || [];
+  const tie        = ranked.length > 1 && ranked[1].length === majority.length;
+  const count      = majority.length;
+  const acceptedFp = majority.length ? majority[0].fingerprint : null;
+
+  for (const info of infos){
+    info.accepted = info.valid && info.fingerprint === acceptedFp && !tie;
+    info.disputed = tie && info.valid;
+    info.rejected = !info.valid || (!tie && info.fingerprint !== acceptedFp);
+  }
+
+  const chain = majority.length ? majority[0].node.chain : lastAcceptedChain;
+  if (majority.length) lastAcceptedChain = chain;
+
+  let status;
+  if (count === 0)                 status = { key:"bad",  text:"NO VALID CHAIN · HALTED" };
+  else if (count === nodes.length) status = { key:"ok",   text:"SYNCED" };
+  else if (tie)                    status = { key:"warn", text:"NO CONSENSUS · HALTED" };
+  else                             status = { key:"bad",  text:"FORK DETECTED" };
+
+  // New blocks are only appended while all four copies agree. A forked network
+  // cannot settle payments — that is the honest behaviour, and it keeps the
+  // simulation coherent.
+  const settling = count === nodes.length;
+
+  return { infos, chain, count, total:nodes.length, tie, status, acceptedFp, settling };
+}
+
+/* ------------------------------------------------------------------- RENDERING */
+async function refresh(opts){
+  const a = await analyseNetwork();
+  const st = deriveState(a.chain);
+  renderStatus(a);
+  renderNodes(a, opts || {});
+  renderContract(st, a);
+  renderTamperControls(st);
+  return a;
+}
+
+function renderStatus(a){
+  const pill = $("statusPill");
+  pill.className = "pill " + a.status.key;
+  $("statusText").textContent  = a.status.text;
+  $("statusCount").textContent = a.count + " / " + a.total;
+
+  const diverging = a.infos.filter(i => i.rejected).length;
+  const ind = $("netInd");
+  if (a.tie){ ind.className = "net-ind warn"; ind.textContent = "NETWORK SPLIT — NO MAJORITY"; }
+  else if (diverging === 0){ ind.className = "net-ind"; ind.textContent = "ALL COPIES MATCH"; }
+  else { ind.className = "net-ind bad";
+         ind.textContent = diverging + (diverging === 1 ? " NODE DIVERGES" : " NODES DIVERGE"); }
+}
+
+function renderNodes(a, opts){
+  const grid = $("nodeGrid");
+  const scrollMemo = {};
+  grid.querySelectorAll(".strip").forEach(s => { scrollMemo[s.dataset.node] = s.scrollLeft; });
+
+  const nextChipState = {};
+  grid.innerHTML = a.infos.map(info => {
+    const n = info.node;
+    const cls = info.rejected ? "rejected" : (info.disputed ? "disputed" : "accepted");
+    // An honest node can still be outvoted. Say so, rather than calling it
+    // "rejected" as though it were the one that cheated.
+    const outvoted = info.rejected && info.honest;
+    const tag = outvoted  ? '<span class="ntag outvoted" title="This copy is untouched and internally valid — it is simply in the minority. The network sided with the forged majority.">OUTVOTED &mdash; HONEST</span>'
+              : info.rejected ? '<span class="ntag rejected">REJECTED</span>'
+              : info.disputed ? '<span class="ntag disputed">DISPUTED</span>'
+                              : '<span class="ntag valid">VALID</span>';
+
+    const chips = n.chain.map((b,i) => {
+      const bad = info.displayBad !== -1 && i >= info.displayBad;
+      const key = n.id + "-" + i;
+      nextChipState[key] = bad ? "bad" : "ok";
+      const flipped = lastChipState[key] === "ok" && bad;
+      const fresh   = !bad && i === freshIndex;
+      const auto    = !bad && AUTO_EVENTS.includes(b.data.event);
+      let badge = "";
+      if (bad) badge = (n.tamperFrom === i)
+        ? '<span class="cbadge">ALTERED</span>' : '<span class="cbadge">BROKEN LINK</span>';
+      // --ci = position in the chain (sweeps), --cb = position within the break (cascade)
+      const cb = bad ? i - info.displayBad : 0;
+      const vars = ' style="--ci:' + i + ';--cb:' + cb + '"';
+      const chip =
+        '<button class="chip' + (bad ? " bad" : "") + (i === 0 && !bad ? " genesis" : "") +
+        (auto ? " auto" : "") + (flipped ? " flip" : "") + (fresh ? " fresh" : "") +
+        '" data-node="' + n.id + '" data-index="' + i + '"' + vars +
+        ' title="Block #' + i + ' — ' + esc(blockTitle(b.data)) + '. Click for the full hash.">' +
+          '<span class="cidx">#' + i + '</span>' +
+          '<span class="clabel">' + esc(blockLabel(b.data)) + '</span>' +
+          '<span class="chash">' + shortHash(b.hash) + '</span>' + badge +
+        '</button>';
+      const link = i < n.chain.length - 1
+        ? '<span class="link' + (bad ? " broken" : "") + '" style="--cb:' + cb + '">' + (bad ? "✕" : "→") + '</span>' : "";
+      return chip + link;
+    }).join("");
+
+    return '<div class="node ' + cls + (opts.broadcast ? " broadcast" : "") +
+        (nodeFx[n.id] ? " " + nodeFx[n.id] : "") + '" data-node="' + n.id + '">' +
+        '<div class="node-head">' +
+          '<span class="ndot"></span><span class="node-name">Node ' + n.id + '</span>' +
+          '<span class="ntag' + (n.role === "leader" ? " leader" : "") + '">' + n.role.toUpperCase() + '</span>' +
+          tag + '<span class="node-fp">fp <b>' + shortHash(info.fingerprint) + '</b></span>' +
+        '</div>' +
+        '<div class="strip-wrap"><div class="strip" data-node="' + n.id + '">' + chips + '</div>' +
+        '<span class="strip-fade"></span></div>' +
+      '</div>';
+  }).join("");
+
+  lastChipState = nextChipState;
+  grid.querySelectorAll(".strip").forEach(s => {
+    if (opts.scrollEnd) s.scrollLeft = s.scrollWidth;
+    else if (scrollMemo[s.dataset.node] !== undefined) s.scrollLeft = scrollMemo[s.dataset.node];
+  });
+  grid.querySelectorAll(".chip").forEach(c => {
+    c.addEventListener("click", () => openBlockModal(c.dataset.node, Number(c.dataset.index)));
+  });
+  freshIndex = -1;
+  nodeFx = {};              // one-shot: these animations play once per action
+}
+
+function renderContract(st, a){
+  const rogueLedger = st.inconsistent || st.diverted > 0 || st.underfunded;
+
+  $("contractHeading").textContent = firstName(st.buyer) + " ↔ " + firstName(st.seller);
+  $("contractSub").textContent = st.title + " · " + st.milestones.length +
+      (st.milestones.length === 1 ? " milestone" : " milestones") +
+      (st.sequential ? " · in order" : " · any order");
+  $("parties").innerHTML =
+    '<span class="party">Buyer <b>' + esc(st.buyer) + '</b></span>' +
+    '<span class="party">Seller <b>' + esc(st.seller) + '</b></span>' +
+    (st.arbiter ? '<span class="party">Arbiter <b>' + esc(st.arbiter) + '</b></span>' : '');
+
+  $("escrowAmount").textContent = inr(st.escrow);
+  $("escrowAmount").classList.toggle("tampered", rogueLedger);
+  const pct = st.fundedAmount > 0 ? Math.max(0, Math.min(100, (st.settled / st.fundedAmount) * 100)) : 0;
+  $("escrowBar").querySelector("i").style.width = pct + "%";
+  $("escrowBar").classList.toggle("tampered", rogueLedger);
+
+  let caption;
+  if (!st.funded)        caption = "not funded yet · contract value " + inr(st.total);
+  else if (st.shortfall) caption = inr(st.settled) + " settled against only " + inr(st.fundedAmount) + " funded";
+  else caption = inr(st.released) + " released" + (st.refunded ? " · " + inr(st.refunded) + " refunded" : "") +
+                 " · " + inr(st.escrow) + " remaining";
+  $("escrowCaption").textContent = caption;
+
+  const alert = $("ledgerAlert");
+  if (st.shortfall > 0){
+    alert.hidden = false;
+    alert.innerHTML = "<b>Ledger does not balance.</b> The accepted history is short by " +
+      esc(inr(st.shortfall)) + " — more money left escrow than was ever put in.";
+  } else if (st.underfunded){
+    alert.hidden = false;
+    alert.innerHTML = "<b>Ledger contradicts itself.</b> Block #0 signs a " + esc(inr(st.total)) +
+      " contract, but the accepted funding block now reads " + esc(inr(st.fundedAmount)) + ".";
+  } else if (st.diverted > 0){
+    alert.hidden = false;
+    alert.innerHTML = "<b>Payment diverted.</b> " + esc(inr(st.diverted)) + " left escrow to " +
+      esc(st.rogueName || "an unknown wallet") + " instead of " + esc(st.seller) + ".";
+  } else alert.hidden = true;
+
+  $("buyerName").textContent = st.buyer;
+  $("buyerBal").textContent  = inr(st.buyerWallet);
+  $("sellerBal").textContent = inr(st.sellerWallet);
+  $("walletBuyer").classList.toggle("rogue", st.underfunded);
+
+  const sellerCard = $("walletSeller");
+  if (st.diverted > 0){
+    sellerCard.classList.add("rogue");
+    sellerCard.querySelector(".role").textContent = "PAID INSTEAD";
+    $("sellerName").textContent = st.rogueName || "Unknown wallet";
+    $("sellerBal").textContent  = inr(st.diverted);
+  } else {
+    sellerCard.classList.remove("rogue");
+    sellerCard.querySelector(".role").textContent = "SELLER";
+    $("sellerName").textContent = st.seller;
+  }
+
+  const active = activeMilestone(st);
+  renderMilestones(st, active);
+  renderActions(st, a, active);
+  $("actionHint").textContent = hintFor(st, a, active);
+}
+
+function renderMilestones(st, active){
+  $("msList").innerHTML = st.milestones.map(m => {
+    const isActive = active && m.id === active.id;
+    const rogue = m.paidTo && m.paidTo !== st.seller;
+    let stat = '<span class="stat">LOCKED</span>', icon = "·", note = "";
+
+    switch(m.status){
+      case "submitted":
+        stat = '<span class="stat amber">AWAITING APPROVAL</span>'; icon = "•";
+        if (m.windowClosed) note = '<span class="ms-note">window closed — auto-release due</span>';
+        else if (m.timeLeft != null) note = '<span class="ms-note">auto-releases in ' + durationText(m.timeLeft) + '</span>';
+        else note = '<span class="ms-note">held — no auto-release</span>';
+        break;
+      case "disputed":
+        stat = '<span class="stat red">DISPUTED</span>'; icon = "!";
+        note = '<span class="ms-note red">funds locked — awaiting ' + esc(firstName(st.arbiter) || "arbiter") + '</span>';
+        break;
+      case "approved":
+        stat = '<span class="stat amber">READY TO RELEASE</span>'; icon = "✓";
+        if (m.trigger === "timeout") note = '<span class="ms-note">approved by silence (window expired)</span>';
+        else if (m.trigger === "arbiter") note = '<span class="ms-note">arbiter ruled for the seller</span>';
+        else if (m.trigger === "no-approval-required") note = '<span class="ms-note">no buyer approval required</span>';
+        break;
+      case "refund_due":
+        stat = '<span class="stat red">REFUND DUE</span>'; icon = "↺";
+        note = '<span class="ms-note red">arbiter ruled for the buyer</span>';
+        break;
+      case "released":
+        stat = '<span class="stat green">RELEASED</span>'; icon = "✓";
+        if (m.trigger === "timeout") note = '<span class="ms-note">released automatically on timeout</span>';
+        else if (m.trigger === "arbiter") note = '<span class="ms-note">released by arbiter ruling</span>';
+        break;
+      case "refunded":
+        stat = '<span class="stat">REFUNDED</span>'; icon = "↺";
+        note = '<span class="ms-note">returned to ' + esc(st.buyer) + '</span>';
+        break;
+    }
+    if (rogue){ stat = '<span class="stat red">DIVERTED</span>';
+                note = '<span class="ms-note red">→ paid to ' + esc(m.paidTo) + '</span>'; }
+
+    const rules = [];
+    if (m.needsApproval) rules.push("buyer approval");
+    if (m.autoReleaseDays > 0) rules.push(m.autoReleaseDays + "d auto-release");
+    if (m.allowDispute) rules.push("dispute → arbiter");
+    if (m.requiresEvidence) rules.push("proof required");
+
+    const tag = st.sequential ? "div" : "button";
+    return '<' + tag + ' class="ms st-' + m.status + (isActive ? " current" : "") + (rogue ? " rogue" : "") +
+             (st.sequential ? "" : " pickable") + '"' + (st.sequential ? "" : ' data-pick="' + m.id + '"') + '>' +
+        '<span class="ms-icon">' + icon + '</span>' +
+        '<span class="ms-body">' +
+          '<span class="ms-name">M' + m.id + ' · ' + esc(m.name) + '</span>' +
+          '<span class="ms-amt">' + inr(m.amount) + '</span>' + note +
+          '<span class="ms-rules">' + esc(rules.join(" · ") || "no prerequisites") + '</span>' +
+        '</span>' + stat +
+      '</' + tag + '>';
+  }).join("");
+
+  $("msList").querySelectorAll("[data-pick]").forEach(el => {
+    el.addEventListener("click", async () => {
+      selectedMsId = Number(el.dataset.pick);
+      await refresh();
+    });
+  });
+}
+
+function renderActions(st, a, m){
+  const halted = !a.settling;
+  const box = $("actionArea");
+  const btn = (action, cls, label, extra) =>
+    '<button class="btn ' + (cls||"") + '" data-action="' + action + '"' + (extra||"") + '>' + label + '</button>';
+  let html = "";
+
+  if (!st.signed){
+    html = '<p class="hold-box">No contract deployed.</p>';
+  } else if (!st.funded){
+    html = btn("fund","btn-ink","Fund escrow · " + inr(st.total));
+  } else if (!m){
+    html = '<p class="done-note">Contract complete ✓ ' + esc(inr(st.released)) + ' released to ' +
+           esc(st.seller) + (st.refunded ? ", " + esc(inr(st.refunded)) + " refunded" : "") + '.</p>';
+  } else {
+    switch(m.status){
+      case "locked":
+        if (m.requiresEvidence){
+          html += '<div class="evidence"><label for="evidenceInput">PROOF OF WORK DONE (filename or reference)</label>' +
+                  '<input id="evidenceInput" placeholder="e.g. invoice-4471.pdf" value="' + esc(evidenceDraft) + '"></div>';
+        }
+        html += btn("submit","","Seller: Submit M" + m.id);
+        break;
+      case "submitted":
+        html += '<div class="row">' +
+                  btn("approve","btn-green","Buyer: Approve") +
+                  (m.allowDispute ? btn("dispute","btn-danger","Buyer: Dispute") : "") +
+                '</div>';
+        if (m.autoReleaseDays > 0){
+          html += '<div class="window-box">' +
+                    '<span><span class="wl">APPROVAL WINDOW (' + m.autoReleaseDays + ' days)</span>' +
+                    '<span class="wt">' + (m.windowClosed ? "expired — releasing automatically"
+                                                          : durationText(m.timeLeft) + " left") + '</span></span>' +
+                    btn("advance","btn-amber btn-sm","⏩ Advance 3 days") +
+                  '</div>';
+        } else {
+          html += '<p class="hold-box">Funds held indefinitely — this milestone has no auto-release, so nothing ' +
+                  'moves until the buyer approves or disputes.</p>';
+        }
+        break;
+      case "disputed":
+        html += '<div class="row">' +
+                  btn("rule-seller","btn-green","Arbiter: for " + firstName(st.seller)) +
+                  btn("rule-buyer","btn-ink","Arbiter: for " + firstName(st.buyer)) +
+                '</div>' +
+                '<p class="hold-box">Funds are locked. Neither party can move them — only ' +
+                esc(st.arbiter || "the arbiter") + ' can decide.</p>';
+        break;
+      case "approved":
+        html += btn("release","btn-green","Release " + inr(m.amount) + " ▸");
+        break;
+      case "refund_due":
+        html += btn("refund","btn-ink","Refund " + inr(m.amount) + " to " + firstName(st.buyer) + " ▸");
+        break;
+    }
+  }
+  box.innerHTML = html;
+
+  const ev = $("evidenceInput");
+  if (ev) ev.addEventListener("input", () => { evidenceDraft = ev.value; });
+  box.querySelectorAll("[data-action]").forEach(b => {
+    if (halted || busy || opDepth > 0) b.disabled = true;
+  });
+}
+
+function hintFor(st, a, m){
+  if (opDepth > 0) return "The contract is executing its own rule right now — no human input required, and no one can interrupt it mid-way.";
+  if (!a.settling){
+    return a.tie
+      ? "Network halted — the four copies are split evenly, so no new block can be agreed. Nothing moves until consensus returns."
+      : "Settlement halted — " + (a.total - a.count) + " of " + a.total + " nodes disagree with the majority. " +
+        "The contract will not append another block while the network is forked. Reset to restore consensus.";
+  }
+  if (st.diverted > 0)   return "⚠ The accepted ledger says " + inr(st.diverted) + " went to " +
+                                (st.rogueName || "an unknown wallet") + ". " + st.seller +
+                                " was never paid — and the contract on screen has been rewritten to match the lie.";
+  if (st.underfunded)    return "⚠ The majority now agrees " + st.buyer + " only ever deposited " +
+                                inr(st.fundedAmount) + ". " + inr(st.total - st.fundedAmount) +
+                                " has been erased from history.";
+  if (!st.funded)        return "Both parties signed. " + st.buyer + " must now lock the money in escrow.";
+  if (!m)                return "Contract complete ✓ Every milestone settled and the escrow is empty.";
+  switch(m.status){
+    case "locked":    return "M" + m.id + " (" + m.name + ") is next. " + st.seller +
+                             " must submit the work" + (m.requiresEvidence ? " with a proof reference" : "") + " before anything can move.";
+    case "submitted": return m.windowClosed
+      ? "The " + m.autoReleaseDays + "-day window has expired with no response. Silence counts as acceptance — the contract is releasing the money by itself."
+      : (m.autoReleaseDays > 0
+          ? st.seller + " submitted M" + m.id + ". " + st.buyer + " has " + durationText(m.timeLeft) +
+            " to approve or dispute. If they say nothing, the contract pays out automatically."
+          : st.seller + " submitted M" + m.id + ". With no auto-release clause, the funds simply sit here until " +
+            st.buyer + " acts — which is exactly the leverage this contract can remove.");
+    case "disputed":  return st.buyer + " rejected the work, so the money is frozen. A neutral arbiter — not either party — now decides who it belongs to.";
+    case "approved":  return m.trigger === "timeout"
+      ? "The window closed without objection. The contract treats silence as acceptance and will release " + inr(m.amount) + "."
+      : m.trigger === "arbiter"
+        ? "The arbiter ruled for " + st.seller + ". The contract will now release " + inr(m.amount) + "."
+        : "Both parties agreed on M" + m.id + ". The contract will now release " + inr(m.amount) + ".";
+    case "refund_due":return "The arbiter ruled for " + st.buyer + ". " + inr(m.amount) +
+                             " goes back to the buyer instead of the seller — and that reversal is itself a permanent block.";
+  }
+  return "";
+}
+
+/* ------------------------------------------------------------ MINING + BROADCAST */
+function showToast(text, nonce, done){
+  const t = $("toast");
+  t.hidden = false;
+  t.classList.toggle("done", !!done);
+  $("toastText").textContent  = text;
+  $("toastNonce").textContent = nonce;
+}
+function hideToast(){ $("toast").hidden = true; }
+const wait = ms => new Promise(r => setTimeout(r, ms));
+
+/* Walk the counter up through the nonces actually tried, time-bounded. */
+async function animateNonce(label, finalNonce, ms){
+  const t0 = Date.now(), dur = ms || 420;
+  for(;;){
+    const p = Math.min(1, (Date.now() - t0) / dur);
+    showToast(label, "nonce: " + Math.floor(p * finalNonce));
+    if (p >= 1) return;
+    await wait(24);
+  }
+}
+
+/* Actions are async, so controls must go dead synchronously — waiting for the
+   next render leaves a window in which a click is silently swallowed. */
+function setBusy(v){
+  busy = v;
+  const lock = v || opDepth > 0;
+  document.querySelectorAll("[data-action]").forEach(b => { if (lock) b.disabled = true; });
+  ["btnTamper","btnRemine","btnAttack","btnPlayAttack","btnReset","btnNewContract"].forEach(id => {
+    const b = $(id); if (b) b.disabled = lock;
+  });
+  document.querySelectorAll(".atk").forEach(b => { if (lock) b.disabled = true; });
+}
+
+/* Run a multi-block contract rule as one uninterruptible unit. */
+async function atomic(fn){
+  opDepth++;
+  try { return await fn(); }
+  finally { opDepth--; setBusy(busy); }   // recompute the lock now the sequence has ended
+}
+
+async function addBlock(data){
+  if (busy) return null;
+  setBusy(true);
+
+  const prev  = honestChain[honestChain.length - 1] || null;
+  const block = {
+    index: honestChain.length,
+    timestamp: now(),
+    data: data,
+    nonce: 0,
+    prevHash: prev ? prev.hash : GENESIS_PREV
+  };
+
+  const label = "Mining block #" + block.index + "…";
+  showToast(label, "nonce: 0");
+  await mineBlock(block);
+  await animateNonce(label, block.nonce);
+  showToast("Block #" + block.index + " mined", "nonce: " + block.nonce + " · " + shortHash(block.hash), true);
+
+  honestChain.push(clone(block));
+  for (const n of nodes) n.chain.push(clone(block));   // broadcast to all four copies
+
+  freshIndex = block.index;
+  setBusy(false);
+  await refresh({ scrollEnd:true, broadcast:true });
+  await wait(240);
+  hideToast();
+  return block;
+}
+
+/* ---------------------------------------------------------------- HAPPY PATH */
+async function currentState(){
+  const a = await analyseNetwork();
+  return { a, st: deriveState(a.chain) };
+}
+
+async function actFund(){
+  const { st } = await currentState();
+  const b = await addBlock({ event:"ESCROW_FUNDED", amount:st.total, by:st.buyer });
+  if (b) log("Block #" + b.index + " mined — " + st.buyer + " funded escrow with " + inr(st.total), "ok");
+}
+
+async function actSubmit(){
+  const { st } = await currentState();
+  const m = activeMilestone(st); if (!m) return;
+  const data = { event:"MILESTONE_SUBMITTED", milestone:m.id, by:st.seller };
+
+  if (m.requiresEvidence){
+    const ref = (evidenceDraft || "").trim();
+    if (!ref){ log("Submission rejected — M" + m.id + " requires a proof reference before it can be submitted.", "warn"); return; }
+    data.evidence = await sha256(ref);               // only the fingerprint goes on-chain
+  }
+  if (m.autoReleaseDays > 0) data.deadline = now() + m.autoReleaseDays * DAY_MS;
+
+  const b = await addBlock(data);
+  if (!b) return;
+  log("Block #" + b.index + " mined — " + st.seller + " submitted M" + m.id + " (" + m.name + ")");
+  if (data.evidence){
+    log("proof “" + (evidenceDraft || "").trim() + "” attached — only its SHA-256 fingerprint " +
+        shortHash(data.evidence) + " is written on-chain, never the document", "net");
+    evidenceDraft = "";
+  }
+  if (m.needsApproval && m.autoReleaseDays > 0){
+    logRaw("approval window opened — " + m.autoReleaseDays + " days. Silence past the deadline counts as acceptance.", "warn");
+  } else if (!m.needsApproval){
+    logRaw("M" + m.id + " needs no buyer approval — payment is unlocked on submission alone", "warn");
+  }
+  await checkDeadlines();
+}
+
+async function actApprove(){
+  const { st } = await currentState();
+  const m = activeMilestone(st); if (!m) return;
+  const b = await addBlock({ event:"MILESTONE_APPROVED", milestone:m.id, by:st.buyer });
+  if (b) log("Block #" + b.index + " mined — " + st.buyer + " approved M" + m.id + " — payment now unlocked", "ok");
+}
+
+async function actDispute(){
+  const { st } = await currentState();
+  const m = activeMilestone(st); if (!m) return;
+  const reason = "Work does not match the agreed specification";
+  const b = await addBlock({ event:"MILESTONE_DISPUTED", milestone:m.id, by:st.buyer, reason });
+  if (!b) return;
+  log("Block #" + b.index + " mined — " + st.buyer + " DISPUTED M" + m.id + ": “" + reason + "”", "warn");
+  logRaw("funds frozen — neither party can move " + inr(m.amount) + "; " +
+         (st.arbiter || "the arbiter") + " must decide", "warn");
+}
+
+async function actRule(forWhom){
+  const { st } = await currentState();
+  const m = activeMilestone(st); if (!m) return;
+  await atomic(async () => {
+    const b = await addBlock({ event:"ARBITER_RULED", milestone:m.id, by:st.arbiter, ruling:forWhom });
+    if (!b) return;
+    log("Block #" + b.index + " mined — " + st.arbiter + " ruled for the " +
+        (forWhom === "seller" ? "seller (" + st.seller + ")" : "buyer (" + st.buyer + ")"), "warn");
+
+    // The ruling executes itself — the arbiter decides, the contract pays.
+    await wait(260);
+    if (forWhom === "seller"){
+      const p = await addBlock({ event:"PAYMENT_RELEASED", milestone:m.id, amount:m.amount, to:st.seller, trigger:"arbiter" });
+      if (p) log("Block #" + p.index + " mined — ruling executed automatically → " + inr(m.amount) + " released to " + st.seller, "ok");
+    } else {
+      const p = await addBlock({ event:"PAYMENT_REFUNDED", milestone:m.id, amount:m.amount, to:st.buyer, trigger:"arbiter" });
+      if (p) log("Block #" + p.index + " mined — ruling executed automatically → " + inr(m.amount) + " refunded to " + st.buyer, "ok");
+    }
+  });
+  await refresh();
+}
+
+async function actRelease(){
+  const { st } = await currentState();
+  const m = activeMilestone(st); if (!m) return;
+  const b = await addBlock({ event:"PAYMENT_RELEASED", milestone:m.id, amount:m.amount,
+                             to:st.seller, trigger:m.trigger || "approval" });
+  if (b) log("Block #" + b.index + " mined — M" + m.id + " approved by both → " + inr(m.amount) +
+             " released to " + st.seller, "ok");
+}
+
+async function actRefund(){
+  const { st } = await currentState();
+  const m = activeMilestone(st); if (!m) return;
+  const b = await addBlock({ event:"PAYMENT_REFUNDED", milestone:m.id, amount:m.amount, to:st.buyer, trigger:"arbiter" });
+  if (b) log("Block #" + b.index + " mined — " + inr(m.amount) + " refunded to " + st.buyer, "ok");
+}
+
+/* The clock only moves when the presenter moves it — a 7-day window has to fit
+   inside a viva. Everything else about the deadline is real chain data. */
+async function actAdvance(){
+  if (busy) return;
+  clockOffset += 3 * DAY_MS;
+  log("clock advanced 3 days (simulated) — now " + new Date(now()).toDateString(), "net");
+  await refresh();
+  await checkDeadlines();
+}
+
+/* Silence past the deadline = acceptance. The contract mines both the expiry
+   and the payout by itself. */
+async function checkDeadlines(){
+  if (busy) return;
+  const a = await analyseNetwork();
+  if (!a.settling) return;                       // never settle while the network disagrees
+  const st = deriveState(a.chain);
+  const m = st.milestones.find(x => x.windowClosed);
+  if (!m) return;
+
+  await atomic(async () => {
+    const b = await addBlock({ event:"WINDOW_EXPIRED", milestone:m.id, at:now(), windowDays:m.autoReleaseDays });
+    if (!b) return;
+    log("Block #" + b.index + " mined — M" + m.id + " approval window expired with no response from " + st.buyer, "warn");
+    logRaw("contract rule fired: silence = acceptance", "warn");
+
+    await wait(280);
+    const p = await addBlock({ event:"PAYMENT_RELEASED", milestone:m.id, amount:m.amount, to:st.seller, trigger:"timeout" });
+    if (p) log("Block #" + p.index + " mined — released automatically → " + inr(m.amount) + " to " + st.seller +
+               ", with no human in the loop", "ok");
+    await checkDeadlines();                      // more than one window may have lapsed
+  });
+  await refresh();
+}
+
+/* ====================================================================
+   TAMPERING — two steps: pick an attack, pick how far it goes
+   ==================================================================== */
+function nodeById(id){ return nodes.find(n => n.id === id); }
+
+let attackId = "shrink";
+let attackNode = "B";
+let tamperStage = 0;       // rungs completed: 0 none, 1 edited, 2 covered, 3 majority owned
+let rungRunning = -1;      // which rung is mid-flight, for the spinner
+
+/* Each attack knows how to locate its own target block. */
+const ATTACKS = [
+  {
+    id:"shrink", name:"Shrink the deposit",
+    desc:"Make the ledger say the buyer deposited half of what they really did.",
+    find: chain => chain.findIndex(b => b.data.event === "ESCROW_FUNDED"),
+    field:"amount",
+    value:(b) => Math.round((Number(b.data.amount) || 0) / 2),
+    unmet:"Fund the escrow first."
+  },
+  {
+    id:"redirect", name:"Redirect a payment",
+    desc:"Send a released milestone payment to an attacker-controlled account.",
+    find: chain => { for(let i=chain.length-1;i>=0;i--) if (chain[i].data.event === "PAYMENT_RELEASED") return i; return -1; },
+    field:"to",
+    value:() => "Shell Corp Holdings",
+    unmet:"Release a milestone payment first."
+  },
+  {
+    id:"window", name:"Shorten the approval window",
+    desc:"Backdate the deadline so the money auto-releases before the buyer can object.",
+    find: chain => { for(let i=chain.length-1;i>=0;i--)
+                       if (chain[i].data.event === "MILESTONE_SUBMITTED" && chain[i].data.deadline != null) return i;
+                     return -1; },
+    field:"deadline",
+    value:() => now() - DAY_MS,
+    unmet:"Submit a milestone with an approval window first."
+  },
+  {
+    id:"ruling", name:"Flip the arbiter's ruling",
+    desc:"Rewrite a neutral third party's decision after the fact.",
+    find: chain => { for(let i=chain.length-1;i>=0;i--) if (chain[i].data.event === "ARBITER_RULED") return i; return -1; },
+    field:"ruling",
+    value:(b) => b.data.ruling === "seller" ? "buyer" : "seller",
+    unmet:"Dispute a milestone and let the arbiter rule first."
+  }
+];
+
+/* Resolve the attack against the HONEST ledger, not the target node's possibly
+   already-tampered copy. Otherwise "halve the deposit" halves again on every
+   click and the stated plan stops matching what actually happens — and the 51%
+   attack, which restores the honest chain first, would apply a stale figure. */
+function resolveAttack(){
+  const node = nodeById(attackNode) || nodes[1];
+  if (!node || !honestChain.length) return null;
+  const atk = ATTACKS.find(x => x.id === attackId) || ATTACKS[0];
+  const index = atk.find(honestChain);
+  if (index === -1) return { atk, node, index:-1, ok:false };
+  const block = honestChain[index];
+  const original = block.data[atk.field];
+  return { atk, node, index, block, field:atk.field, original, value:atk.value(block), ok:true };
+}
+
+function describeValue(field, v){
+  if (field === "deadline") return timeOf(Number(v));
+  if (typeof v === "number") return inr(v);
+  return "“" + v + "”";
+}
+
+function renderTamperControls(st){
+  if (!tamperMode) return;
+
+  // ---- step 1: attack cards + node picker
+  $("atkGrid").innerHTML = ATTACKS.map(atk => {
+    const available = honestChain.length > 0 && atk.find(honestChain) !== -1;
+    return '<button class="atk" data-atk="' + atk.id + '" aria-pressed="' + (attackId === atk.id) + '"' +
+           (available ? "" : " disabled") + '>' +
+             '<span class="an">' + esc(atk.name) + '</span>' +
+             '<span class="ad">' + esc(atk.desc) + '</span>' +
+             (available ? "" : '<span class="aw">' + esc(atk.unmet) + '</span>') +
+           '</button>';
+  }).join("");
+  $("atkGrid").querySelectorAll("[data-atk]").forEach(b => b.addEventListener("click", async () => {
+    attackId = b.dataset.atk;
+    tamperStage = 0;                       // new target, fresh escalation
+    $("tplayHint").textContent = "One click runs all three rungs in order — or click them yourself.";
+    await refresh();
+  }));
+
+  $("nodePick").innerHTML = "Attacker controls: " + nodes.map(n =>
+    '<button class="npill" data-np="' + n.id + '" aria-pressed="' + (attackNode === n.id) + '">Node ' + n.id + '</button>'
+  ).join("");
+  $("nodePick").querySelectorAll("[data-np]").forEach(b => b.addEventListener("click", async () => {
+    attackNode = b.dataset.np;
+    tamperStage = 0;
+    await refresh();
+  }));
+
+  // ---- step 2: plain-English preview of exactly what will happen
+  const r = resolveAttack();
+  const plan = $("tamperPlan");
+  const ready = !!(r && r.ok);
+  if (!ready){
+    plan.innerHTML = "Nothing to attack yet — run the deal a little further first.";
+  } else {
+    plan.innerHTML = "Node " + r.node.id + " will rewrite <b>block #" + r.index + "</b> · field <b>" +
+      esc(r.field) + "</b> · " + esc(describeValue(r.field, r.original)) + " → <b>" +
+      esc(describeValue(r.field, r.value)) + "</b>";
+  }
+  renderLadder(ready);
+  renderAdvancedEditor();
+}
+
+/* The ladder always shows what has been done and what to press next. */
+function renderLadder(ready){
+  const ids = ["btnTamper","btnRemine","btnAttack"];
+  ids.forEach((id, i) => {
+    const el = $(id); if (!el) return;
+    let state;
+    if (rungRunning === i)      state = "running";
+    else if (i < tamperStage)   state = "done";
+    else if (i === tamperStage) state = "next";
+    else                        state = "todo";
+    el.dataset.state = state;
+    // every rung stays clickable out of order — this is a sandbox, not a wizard
+    el.disabled = busy || !ready;
+  });
+  const play = $("btnPlayAttack");
+  if (play) play.disabled = busy || !ready;
+}
+
+function renderAdvancedEditor(){
+  const nodeSel = $("tNode"), blockSel = $("tBlock"), fieldSel = $("tField"), valInput = $("tValue");
+  const keepNode = nodeSel.value || attackNode;
+  nodeSel.innerHTML = nodes.map(n =>
+    '<option value="' + n.id + '">Node ' + n.id + (n.role === "leader" ? " (leader)" : "") + '</option>').join("");
+  nodeSel.value = nodes.some(n => n.id === keepNode) ? keepNode : nodes[1].id;
+
+  const chain = nodeById(nodeSel.value).chain;
+  const keepBlock = blockSel.value;
+  blockSel.innerHTML = chain.map((b,i) =>
+    '<option value="' + i + '">#' + i + ' · ' + esc(blockLabel(b.data)) + '</option>').join("");
+  blockSel.value = (keepBlock !== "" && Number(keepBlock) < chain.length) ? keepBlock : String(chain.length - 1);
+
+  const data = chain[Number(blockSel.value)].data;
+  const keys = Object.keys(data).filter(k => k !== "event");
+  const keepField = fieldSel.value;
+  fieldSel.innerHTML = keys.map(k => '<option value="' + esc(k) + '">' + esc(k) + '</option>').join("");
+  fieldSel.value = keys.includes(keepField) ? keepField : keys[0];
+
+  // Only prefill when the target changes — never discard a typed value.
+  const key = nodeSel.value + "|" + blockSel.value + "|" + fieldSel.value;
+  if (key !== tamperKey && document.activeElement !== valInput){
+    valInput.value = JSON.stringify(data[fieldSel.value]).replace(/^"|"$/g,"");
+    tamperKey = key;
+  }
+}
+function syncValueField(){
+  const chain = nodeById($("tNode").value).chain;
+  const data  = chain[Number($("tBlock").value)].data;
+  $("tValue").value = JSON.stringify(data[$("tField").value]).replace(/^"|"$/g,"");
+  tamperKey = $("tNode").value + "|" + $("tBlock").value + "|" + $("tField").value;
+}
+
+/* Read the edit from whichever control the presenter used last. */
+function readEdit(useAdvanced){
+  if (useAdvanced){
+    const nodeId = $("tNode").value, index = Number($("tBlock").value), field = $("tField").value;
+    const chain = nodeById(nodeId).chain;
+    if (!chain[index] || !(field in chain[index].data)) return null;
+    const original = chain[index].data[field];
+    let value = $("tValue").value;
+    if (typeof original === "number"){ const n = Number(value); value = Number.isFinite(n) ? n : value; }
+    return { nodeId, index, field, value, original };
+  }
+  const r = resolveAttack();
+  if (!r || !r.ok) return null;
+  return { nodeId:r.node.id, index:r.index, field:r.field, value:r.value, original:r.original };
+}
+/* The advanced panel wins only while it is open and focused on. */
+function activeEdit(){
+  const adv = document.querySelector(".adv");
+  return readEdit(!!(adv && adv.open));
+}
+
+async function applyTamper(node, index, field, value){
+  const b = node.chain[index];
+  b.data[field] = value;
+  await mineBlock(b);
+  node.tamperFrom = (node.tamperFrom === null || node.tamperFrom === undefined)
+    ? index : Math.min(node.tamperFrom, index);
+}
+async function remineFrom(node, start){
+  for (let i = start; i < node.chain.length; i++){
+    if (i > 0) node.chain[i].prevHash = node.chain[i-1].hash;
+    await mineBlock(node.chain[i]);
+  }
+  node.tamperFrom = null;
+}
+
+async function doTamper(){
+  const edit = activeEdit();
+  if (!edit || busy) return;
+  setBusy(true);
+  rungRunning = 0; renderLadder(true);
+  const node = nodeById(edit.nodeId);
+  showToast("Re-mining tampered block #" + edit.index + "…", "");
+  await applyTamper(node, edit.index, edit.field, edit.value);
+  await wait(320);
+  hideToast();
+  log("TAMPER on Node " + node.id + " — block #" + edit.index + " field ‘" + edit.field + "’ altered " +
+      describeValue(edit.field, edit.original) + " → " + describeValue(edit.field, edit.value) +
+      ", hash recomputed", "warn");
+  rungRunning = -1; tamperStage = Math.max(tamperStage, 1);
+  setBusy(false);
+  const a = await refresh();
+  reportConsensus(a, node.id);
+}
+
+async function doRemine(){
+  const edit = activeEdit();
+  if (!edit || busy) return;
+  const node = nodeById(edit.nodeId);
+  const start = (node.tamperFrom === null || node.tamperFrom === undefined) ? edit.index : node.tamperFrom;
+  setBusy(true);
+  rungRunning = 1; renderLadder(true);
+  showToast("Re-mining Node " + node.id + " from block #" + start + "…", "");
+  if (node.tamperFrom === null || node.tamperFrom === undefined){
+    node.chain[edit.index].data[edit.field] = edit.value;      // cover tracks in one move
+  }
+  await remineFrom(node, start);
+  await wait(360);
+  hideToast();
+  log("Node " + node.id + " re-mined blocks #" + start + "–#" + (node.chain.length-1) +
+      " — its own copy is internally valid again, no broken links", "warn");
+  rungRunning = -1; tamperStage = Math.max(tamperStage, 2);
+  setBusy(false);
+  nodeFx[node.id] = "remining";              // sweep the re-mining wave across it
+  const a = await refresh();
+  const info = a.infos.find(i => i.node.id === node.id);
+  if (info && info.rejected){
+    logRaw("consensus check — Node " + node.id + " hashes are self-consistent but its fingerprint differs from the majority → STILL REJECTED ✗", "bad");
+  }
+  reportConsensus(a, node.id);
+}
+
+async function doAttack(){
+  const edit = activeEdit();
+  if (!edit || busy) return;
+  setBusy(true);
+  rungRunning = 2; renderLadder(true);
+
+  // The attacker already owns the selected node — a 51% means they capture
+  // enough of the others to hold a majority, leaving exactly one honest holdout.
+  const others   = nodes.map(n => n.id).filter(id => id !== edit.nodeId);
+  const captured = [edit.nodeId, others[0], others[1]];       // 3 of 4
+  const holdout  = others[2];
+
+  // Restore every copy to the honest ledger first, then corrupt the captured
+  // ones identically — otherwise "majority" is not well defined.
+  for (const n of nodes){ n.chain = clone(honestChain); n.tamperFrom = null; }
+
+  showToast("51% attack — forging Nodes " + captured.join(", ") + "…", "");
+  for (const id of captured){
+    const n = nodeById(id);
+    n.chain[edit.index].data[edit.field] = edit.value;
+    await remineFrom(n, edit.index);
+  }
+  await wait(420);
+  hideToast();
+  log("51% ATTACK — Nodes " + captured.slice(0,-1).join(", ") + " and " + captured[captured.length-1] +
+      " all rewrote block #" + edit.index + ": ‘" + edit.field + "’ " +
+      describeValue(edit.field, edit.original) + " → " + describeValue(edit.field, edit.value) +
+      " and re-mined every block after it", "bad");
+  rungRunning = -1; tamperStage = 3;
+  setBusy(false);
+  captured.forEach(id => { nodeFx[id] = "forging"; });   // watch the forgery propagate
+  nodeFx[holdout] = "outvoted";                          // the honest node, left flashing alone
+  const a = await refresh();
+  logRaw("consensus check — 3 of 4 nodes now agree on the forged history → the network ACCEPTS it", "bad");
+  logRaw("Node " + holdout + " still holds the honest ledger — it is not tampered, it is simply OUTVOTED 1 vs 3", "bad");
+  logRaw("this is the attack blockchains are designed to price out: you must own the majority of independent validators.", "warn");
+}
+
+/* One click, the whole escalation — the easiest way to run this on stage. */
+async function playWholeAttack(){
+  if (busy) return;
+  const r = resolveAttack();
+  if (!r || !r.ok) return;
+  $("tplayHint").textContent = "Running the full escalation…";
+  logRaw("— attacker escalation, three rungs —", "warn");
+  await doTamper();
+  await wait(1500);                 // let the cascade land before the next move
+  await doRemine();
+  await wait(1500);
+  await doAttack();
+  $("tplayHint").textContent = "Done. Reset to restore the honest ledger.";
+}
+
+function reportConsensus(a, focusId){
+  const rejected = a.infos.filter(i => i.rejected).map(i => i.node.id);
+  if (a.tie){
+    logRaw("consensus check — the network is split " + a.count + " vs " + a.count +
+           ": no majority, chain HALTED. No payment can move.", "warn");
+    return;
+  }
+  if (rejected.length === 0){
+    logRaw("network: " + a.count + " / " + a.total + " nodes agree — ledger intact ✓", "ok");
+    return;
+  }
+  if (focusId && rejected.includes(focusId)){
+    logRaw("consensus check — Node " + focusId + " chain ≠ majority → NODE " + focusId + " REJECTED ✗", "bad");
+  }
+  const st = deriveState(a.chain);
+  logRaw("network: " + a.count + " / " + a.total + " nodes agree — correct " + inr(st.total) + " ledger preserved ✓", "ok");
+}
+
+/* ------------------------------------------------------------- BLOCK DETAIL */
+async function openBlockModal(nodeId, index){
+  const node = nodeById(nodeId);
+  const b = node.chain[index];
+  const recomputed = await recomputeHash(b);
+  const selfOk = recomputed === b.hash;
+  const prev = index > 0 ? node.chain[index-1] : null;
+  const linkOk = index === 0 ? b.prevHash === GENESIS_PREV : b.prevHash === prev.hash;
+
+  const accepted = (await analyseNetwork()).chain;
+  const peer = accepted[index];
+  const agreed = !peer || peer.hash === b.hash;
+
+  $("blockModalTitle").textContent = "Node " + nodeId + " — Block #" + index + " · " + blockTitle(b.data);
+  $("blockModalBody").innerHTML =
+    '<dl class="kv">' +
+      '<dt>index</dt><dd>' + b.index + '</dd>' +
+      '<dt>timestamp</dt><dd>' + b.timestamp + '  <span style="color:var(--slate)">(' + timeOf(b.timestamp) + ')</span></dd>' +
+      '<dt>data</dt><dd class="json">' + esc(JSON.stringify(b.data, null, 2)) + '</dd>' +
+      '<dt>nonce</dt><dd>' + b.nonce + '  <span style="color:var(--slate)">(proof of work: hash must start with &ldquo;' + POW_PREFIX + '&rdquo;)</span></dd>' +
+      '<dt>prevHash</dt><dd><div class="hash-full ' + (linkOk ? "good" : "bad") + '">' + esc(b.prevHash) + '</div></dd>' +
+      '<dt>hash</dt><dd><div class="hash-full ' + (selfOk ? "good" : "bad") + '">' + esc(b.hash) + '</div></dd>' +
+      '<dt>recomputed</dt><dd><div class="hash-full ' + (selfOk ? "good" : "bad") + '">' + esc(recomputed) + '</div></dd>' +
+      (agreed ? "" : '<dt>network copy</dt><dd><div class="hash-full bad">' + esc(peer.hash) + '</div></dd>') +
+    '</dl>' + verdictHtml(selfOk, linkOk, agreed, index, prev, peer, b.hash);
+  openOverlay("blockOverlay");
+}
+function verdictHtml(selfOk, linkOk, agreed, index, prev, peer, ownHash){
+  if (selfOk && linkOk && !agreed){
+    return '<div class="verdict warn"><span class="vi">⚠</span><span>' +
+      'This block is internally sealed &mdash; its hash matches its contents and its <code>prevHash</code> lines up. ' +
+      'But it is <b>not the block the network agreed on</b>. The accepted copy of #' + index + ' hashes to <b>' +
+      shortHash(peer.hash) + '</b>, this one to <b>' + shortHash(ownHash) + '</b>. ' +
+      'Rewriting a node’s own history is easy; making everyone else accept it is not.</span></div>';
+  }
+  if (selfOk && linkOk){
+    return '<div class="verdict good"><span class="vi">✓</span><span>' +
+      'The stored hash matches a fresh SHA-256 of this block’s contents, <code>prevHash</code> matches ' +
+      (index === 0 ? "the genesis marker" : "block #" + (index-1) + "’s hash") +
+      ', and the rest of the network holds an identical copy. Sealed, chained and agreed.</span></div>';
+  }
+  if (!selfOk){
+    return '<div class="verdict bad"><span class="vi">✗</span><span>' +
+      'The stored hash does <b>not</b> match a fresh SHA-256 of these contents — the data was changed after the block was mined. ' +
+      'Every later block on this node is invalidated with it.</span></div>';
+  }
+  return '<div class="verdict bad"><span class="vi">✗</span><span>' +
+    'This block’s own hash is fine, but its <code>prevHash</code> points at a version of block #' + (index-1) +
+    ' that no longer exists — that block was altered underneath it (its hash is now <b>' + shortHash(prev.hash) +
+    '</b>). The chain is broken here and stays broken for every block after it.</span></div>';
+}
+
+/* ------------------------------------------------------------- RELEASE RULES */
+async function openRules(){
+  const { a, st } = await currentState();
+  const m = activeMilestone(st);
+  const branch = activeBranch(m);
+  const days = m ? m.autoReleaseDays : 7;
+  const on = b => branch === b ? " on" : "";
+
+  $("rulesBody").innerHTML =
+    '<p style="margin:0 0 14px;color:var(--slate);font-size:13px">' +
+      'This is the logic the contract runs by itself for every milestone. The highlighted branch is the one ' +
+      'live right now for <b style="color:var(--ink)">' + (m ? "M" + m.id + " · " + esc(m.name) : "—") + '</b>.' +
+    '</p>' +
+    '<div class="code">' +
+      '<span class="cline"><span class="kw">FOR</span> each milestone M:</span>' +
+      '<span class="cline' + on("submit") + '">   <span class="kw">IF</span> seller.submitted(M):</span>' +
+      '<span class="cline">        start approval_window (' + days + ' days)</span>' +
+      '<span class="cline"> </span>' +
+      '<span class="cline' + on("approve") + '">        <span class="kw">IF</span> buyer.approved(M):</span>' +
+      '<span class="cline">             transfer(escrow → seller, M.amount)      <span class="cm">// buyer says yes</span></span>' +
+      '<span class="cline"> </span>' +
+      '<span class="cline' + on("dispute") + '">        <span class="kw">ELSE IF</span> buyer.disputed(M):</span>' +
+      '<span class="cline">             lock funds → arbiter.decide(M)            <span class="cm">// neutral third party rules</span></span>' +
+      '<span class="cline"> </span>' +
+      '<span class="cline' + on("timeout") + '">        <span class="kw">ELSE IF</span> approval_window expired:</span>' +
+      '<span class="cline">             transfer(escrow → seller, M.amount)       <span class="cm">// silence = acceptance</span></span>' +
+      '<span class="cline"> </span>' +
+      '<span class="cline' + on("hold") + '">        <span class="kw">ELSE</span>:</span>' +
+      '<span class="cline">             hold funds — waiting on buyer</span>' +
+    '</div>' +
+    '<p class="rules-note">' +
+      '<b>Why each branch matters.</b> Approval is the happy path. The dispute branch stops a buyer from ' +
+      'holding a seller hostage by simply refusing to click &mdash; a neutral arbiter decides, and their ruling ' +
+      'executes itself. The expiry branch stops the mirror abuse: a buyer who stays silent to delay payment ' +
+      'indefinitely loses that leverage after ' + days + ' days. The final branch is the honest admission that ' +
+      'while a window is open, the money simply waits.' +
+    '</p>' +
+    '<p class="rules-note">Every branch above writes its own block, so the reason a payment moved is as ' +
+      'permanent and as auditable as the payment itself.</p>';
+  openOverlay("rulesOverlay");
+}
+
+/* ====================================================================
+   WHY NOT A DATABASE — the same fraud, played out side by side
+   ==================================================================== */
+const DB_STEPS = [
+  { n:"01", t:"The record",   db:"A single row on a single server holds the only copy of the deposit.",
+    ch:"The same figure, sealed in a block whose hash the next block points at." },
+  { n:"02", t:"The edit",     db:"An administrator opens the row. Nothing about this is unusual — it is their job.",
+    ch:"The attacker makes the identical change on the copy they control." },
+  { n:"03", t:"The reaction", db:"✓ <b>UPDATE 1 row affected.</b> No alarm. No prior version kept.",
+    ch:"The hash no longer matches, so block #2’s link snaps. The tamper is visible instantly." },
+  { n:"04", t:"The outcome",  db:"₹6,00,000 never existed as far as this system is concerned.",
+    ch:"3 of 4 nodes still hold ₹6,00,000 and outvote the forgery." }
+];
+const DB_STEP_MS = 3000;
+let dbStep = 0, dbTimer = null, dbHashesReady = false;
+
+function renderDbSteps(){
+  $("dbSteps").innerHTML = DB_STEPS.map((s,i) =>
+    '<button class="dstep" data-dstep="' + i + '" aria-current="' + (i === dbStep) + '">' +
+      '<span class="dsn">' + s.n + '</span><span class="dst">' + esc(s.t) + '</span>' +
+    '</button>').join("");
+  $("dbSteps").querySelectorAll("[data-dstep]").forEach(el =>
+    el.addEventListener("click", () => { stopDb(); setDbStep(Number(el.dataset.dstep)); }));
+}
+
+function setDbStep(i){
+  dbStep = Math.max(0, Math.min(DB_STEPS.length - 1, i));
+  $("dbStage").dataset.step = String(dbStep);
+  $("dbSteps").querySelectorAll("[data-dstep]").forEach(el =>
+    el.setAttribute("aria-current", String(Number(el.dataset.dstep) === dbStep)));
+
+  const s = DB_STEPS[dbStep];
+  const dbOut = $("dbOut"), chOut = $("chOut");
+  dbOut.className = "vs-out " + (dbStep >= 2 ? "bad" : "neutral");
+  chOut.className = "vs-out " + (dbStep >= 2 ? "good" : "neutral");
+  dbOut.innerHTML = s.db;
+  chOut.innerHTML = s.ch;
+  $("dbStamp").className = "dstamp " + (dbStep >= 2 ? "ok" : "ok");
+}
+
+function stopDb(){ clearInterval(dbTimer); dbTimer = null; $("dbHint").textContent = "Paused — click a step, or Replay."; }
+function playDb(){
+  clearInterval(dbTimer);
+  setDbStep(0);
+  $("dbHint").textContent = "Playing automatically — click any step above to jump.";
+  dbTimer = setInterval(() => {
+    if (dbStep >= DB_STEPS.length - 1){ clearInterval(dbTimer); dbTimer = null;
+      $("dbHint").textContent = "Click Replay to run it again."; return; }
+    setDbStep(dbStep + 1);
+  }, DB_STEP_MS);
+}
+
+/* The record and both hashes are real: the same SHA-256 the chain itself uses. */
+async function renderDbModal(){
+  const st = deriveState((await analyseNetwork()).chain);
+  const honestAmt = st.total || 600000;
+  const forged = Math.round(honestAmt / 2);
+  const row = (k, v, cls) =>
+    '<div class="r' + (cls ? " " + cls : "") + '"><span>' + esc(k) + '</span>' + v + '</div>';
+  const rec =
+    row("contract_id", "<b>SC-2041</b>") +
+    row("buyer", "<b>" + esc(st.buyer || "—") + "</b>") +
+    row("seller", "<b>" + esc(st.seller || "—") + "</b>") +
+    row("escrow_amount",
+        '<b><span class="dold">' + esc(inr(honestAmt).replace("₹","")) + '</span> ' +
+        '<span class="dnew">' + esc(inr(forged).replace("₹","")) + '</span></b>', "tgt");
+  $("dbRec").innerHTML = rec;
+  $("chRec").innerHTML = rec;
+
+  const shape = amt => JSON.stringify({ contract_id:"SC-2041", buyer:st.buyer, seller:st.seller, escrow_amount:amt });
+  $("chHashNow").textContent = await sha256(shape(forged));
+  $("chHashOld").textContent = await sha256(shape(honestAmt));
+  dbHashesReady = true;
+
+  renderDbSteps();
+  playDb();
+}
+
+/* ====================================================================
+   CONTRACT BUILDER — customer-defined prerequisites
+   ==================================================================== */
+let draft = clone(DEMO_CONTRACT);
+
+function openBuilder(){
+  $("bBuyer").value   = draft.buyer;
+  $("bSeller").value  = draft.seller;
+  $("bArbiter").value = draft.arbiter;
+  $("bTitle").value   = draft.title;
+  $("bSequential").value = draft.sequential ? "yes" : "no";
+  renderBuilderMilestones();
+  $("bErr").hidden = true;
+  openOverlay("builderOverlay");
+}
+
+function renderBuilderMilestones(){
+  $("bMilestones").innerHTML = draft.milestones.map((m,i) =>
+    '<div class="mrow" data-i="' + i + '">' +
+      '<div class="mrow-top">' +
+        '<span class="mnum">' + (i+1) + '</span>' +
+        '<label class="b-field"><span>What must be delivered</span>' +
+          '<input data-f="name" value="' + esc(m.name) + '" placeholder="e.g. Design approved"></label>' +
+        '<label class="b-field"><span>Amount (₹)</span>' +
+          '<input data-f="amount" type="number" min="1" step="1000" value="' + Number(m.amount) + '"></label>' +
+        '<button class="mdel" data-del="' + i + '" title="Remove this milestone"' +
+          (draft.milestones.length <= 1 ? " disabled" : "") + '>&times;</button>' +
+      '</div>' +
+      '<div class="mrow-opts">' +
+        optChip(i,"needsApproval",m.needsApproval,"Buyer approval required") +
+        '<label class="opt' + (m.autoReleaseDays > 0 ? " on" : "") + '">' +
+          '<input type="checkbox" data-f="autoOn" ' + (m.autoReleaseDays > 0 ? "checked" : "") + '>' +
+          'Auto-release after <input class="days" type="number" min="1" max="365" data-f="autoReleaseDays" ' +
+          'value="' + (m.autoReleaseDays > 0 ? m.autoReleaseDays : 7) + '"' +
+          (m.autoReleaseDays > 0 ? "" : " disabled") + '> days of silence</label>' +
+        optChip(i,"allowDispute",m.allowDispute,"Buyer may dispute → arbiter") +
+        optChip(i,"requiresEvidence",m.requiresEvidence,"Proof of work required") +
+      '</div>' +
+    '</div>').join("");
+
+  const total = draft.milestones.reduce((s,m) => s + (Number(m.amount)||0), 0);
+  $("bTotal").textContent = inr(total);
+
+  $("bMilestones").querySelectorAll(".mrow").forEach(row => {
+    const i = Number(row.dataset.i);
+    row.querySelectorAll("[data-f]").forEach(inp => {
+      inp.addEventListener("input", () => {
+        const f = inp.dataset.f, m = draft.milestones[i];
+        if (f === "name") m.name = inp.value;
+        else if (f === "amount") m.amount = Number(inp.value) || 0;
+        else if (f === "autoOn"){ m.autoReleaseDays = inp.checked ? (Number(row.querySelector('[data-f="autoReleaseDays"]').value) || 7) : 0;
+                                  renderBuilderMilestones(); return; }
+        else if (f === "autoReleaseDays") m.autoReleaseDays = Number(inp.value) || 0;
+        else m[f] = inp.checked;
+        if (f === "amount") $("bTotal").textContent =
+          inr(draft.milestones.reduce((s,x) => s + (Number(x.amount)||0), 0));
+        if (["needsApproval","allowDispute","requiresEvidence"].includes(f)) renderBuilderMilestones();
+      });
+    });
+    const del = row.querySelector("[data-del]");
+    if (del) del.addEventListener("click", () => {
+      draft.milestones.splice(i,1); renderBuilderMilestones();
+    });
+  });
+}
+function optChip(i, field, on, label){
+  return '<label class="opt' + (on ? " on" : "") + '">' +
+           '<input type="checkbox" data-f="' + field + '" ' + (on ? "checked" : "") + '>' + esc(label) +
+         '</label>';
+}
+
+function readBuilder(){
+  draft.buyer   = $("bBuyer").value.trim();
+  draft.seller  = $("bSeller").value.trim();
+  draft.arbiter = $("bArbiter").value.trim();
+  draft.title   = $("bTitle").value.trim();
+  draft.sequential = $("bSequential").value === "yes";
+  return draft;
+}
+function validateDraft(d){
+  if (!d.buyer || !d.seller) return "Buyer and seller must both be named.";
+  if (d.buyer === d.seller)  return "Buyer and seller must be different parties.";
+  if (!d.title)              return "Give the agreement a title.";
+  if (!d.milestones.length)  return "Add at least one milestone.";
+  for (const m of d.milestones){
+    if (!m.name.trim())      return "Every milestone needs a description.";
+    if (!(Number(m.amount) > 0)) return "Every milestone needs an amount greater than zero.";
+    if (m.allowDispute && !d.arbiter) return "Milestones that allow disputes need a named arbiter.";
+  }
+  return null;
+}
+
+async function deployContract(){
+  const d = readBuilder();
+  const err = validateDraft(d);
+  if (err){ $("bErr").hidden = false; $("bErr").textContent = err; return; }
+  $("bErr").hidden = true;
+  closeOverlay("builderOverlay");
+  activeContract = clone(d);
+  await resetAll(true);
+}
+
+/* ------------------------------------------------------------------------ INIT */
+function contractGenesisData(){
+  const c = activeContract;
+  const milestones = c.milestones.map((m,i) => ({
+    id:i+1, name:m.name, amount:Number(m.amount)||0,
+    needsApproval:!!m.needsApproval, autoReleaseDays:Number(m.autoReleaseDays)||0,
+    allowDispute:!!m.allowDispute, requiresEvidence:!!m.requiresEvidence
+  }));
+  const total = milestones.reduce((s,m) => s + m.amount, 0);
+  return {
+    event:"CONTRACT_SIGNED",
+    buyer:c.buyer, seller:c.seller, arbiter:c.arbiter, title:c.title,
+    total, buyerOpening: total + 400000, sequential:!!c.sequential,
+    milestones
+  };
+}
+
+async function boot(){
+  setBusy(true);
+  logEntries = []; lastChipState = {}; lastAcceptedChain = [];
+  tamperKey = null; selectedMsId = null; evidenceDraft = ""; clockOffset = 0;
+  tamperStage = 0; rungRunning = -1;      // a fresh ledger means a fresh escalation
+  honestChain = [];
+  nodes = NODE_DEFS.map(d => ({ id:d.id, role:d.role, chain:[], tamperFrom:null }));
+
+  const data = contractGenesisData();
+  const genesis = { index:0, timestamp:now(), data, nonce:0, prevHash:GENESIS_PREV };
+
+  showToast("Mining genesis block…", "nonce: 0");
+  await mineBlock(genesis);
+  await animateNonce("Mining genesis block…", genesis.nonce);
+  showToast("Genesis mined", "nonce: " + genesis.nonce + " · " + shortHash(genesis.hash), true);
+
+  honestChain.push(clone(genesis));
+  for (const n of nodes) n.chain.push(clone(genesis));
+
+  log("Block #0 mined — " + data.title + " signed by both parties (" + inr(data.total) + ", " +
+      data.milestones.length + " milestones)", "ok");
+  logRaw("contract terms are part of block #0 — the rules are as tamper-evident as the payments", "net");
+  logRaw("genesis replicated to Nodes A, B, C, D — 4 / 4 in sync ✓", "ok");
+
+  setBusy(false);
+  await refresh({ scrollEnd:true, broadcast:true });
+  await wait(500);
+  hideToast();
+}
+
+async function resetAll(quiet){
+  if (busy) return;
+  setBusy(true);
+  await boot();
+  setBusy(false);
+  await refresh();
+  log(quiet ? "New contract deployed — fresh genesis, all four copies identical"
+            : "Network reset — fresh genesis, all four copies identical", "net");
+}
+
+/* --------------------------------------------------------------------- WIRING */
+$("actionArea").addEventListener("click", async e => {
+  const b = e.target.closest("[data-action]");
+  if (!b || b.disabled) return;
+  switch(b.dataset.action){
+    case "fund":        await actFund(); break;
+    case "submit":      await actSubmit(); break;
+    case "approve":     await actApprove(); break;
+    case "dispute":     await actDispute(); break;
+    case "rule-seller": await actRule("seller"); break;
+    case "rule-buyer":  await actRule("buyer"); break;
+    case "release":     await actRelease(); break;
+    case "refund":      await actRefund(); break;
+    case "advance":     await actAdvance(); break;
+  }
+});
+
+$("btnReset").addEventListener("click", () => resetAll(false));
+$("btnRules").addEventListener("click", openRules);
+$("btnNewContract").addEventListener("click", openBuilder);
+
+/* ====================================================================
+   PROBLEM STATEMENT — four beats, told in motion
+   ==================================================================== */
+const BEATS = [
+  { t:"Nobody moves first",
+    d:"Money and work can’t change hands at the same instant. Whoever goes first carries all the risk." },
+  { t:"So we appoint a custodian",
+    d:"Escrow holds the funds — but now both sides have to trust one company’s database." },
+  { t:"One row. One admin.",
+    d:"A single edit rewrites the only copy of the truth. No alarm, no trace, nothing left to prove." },
+  { t:"Replicate it. Chain it.",
+    d:"Four independent copies, each block sealed by the last. The same edit is caught in milliseconds." }
+];
+const BEAT_MS = 4200;
+let beatIndex = 0, beatVisible = true, beatT0 = 0, beatHoldUntil = 0;
+
+function renderBeats(){
+  $("beats").innerHTML = BEATS.map((b,i) =>
+    '<button class="beat" role="tab" data-beat-idx="' + i + '" aria-current="' + (i === beatIndex) + '">' +
+      '<span class="bn">' + (i+1) + '</span>' +
+      '<span><span class="bt">' + esc(b.t) + '</span><span class="bd">' + esc(b.d) + '</span></span>' +
+    '</button>').join("");
+  $("beats").querySelectorAll("[data-beat-idx]").forEach(el =>
+    el.addEventListener("click", () => {
+      beatHoldUntil = Date.now() + 9000;      // read it, then autoplay picks up again
+      setBeat(Number(el.dataset.beatIdx));
+    }));
+}
+function setBeat(i){
+  beatIndex = ((i % BEATS.length) + BEATS.length) % BEATS.length;
+  $("stage").dataset.beat = String(beatIndex);
+  $("beats").querySelectorAll("[data-beat-idx]").forEach(el =>
+    el.setAttribute("aria-current", String(Number(el.dataset.beatIdx) === beatIndex)));
+  beatT0 = Date.now();
+  restartProgress();
+}
+/* It must simply run 1 → 2 → 3 → 4 on its own. Hovering no longer pauses it —
+   a cursor resting anywhere over the section used to freeze it indefinitely.
+   Clicking a beat holds that beat briefly so it can be read, then autoplay
+   resumes by itself. */
+function beatRunning(){
+  const p = $("problem");
+  return beatVisible && !REDUCED && !p.classList.contains("collapsed") && Date.now() >= beatHoldUntil;
+}
+function restartProgress(){
+  const bar = $("beatProgress");
+  bar.classList.remove("run");
+  void bar.offsetWidth;                       // force the fill animation to restart
+  bar.style.setProperty("--beat-ms", BEAT_MS + "ms");
+  if (beatRunning()) bar.classList.add("run");
+}
+/* A tick loop rather than a chain of timeouts: every condition is re-evaluated
+   each tick, so the animation can never end up permanently stalled because a
+   flag was left set while the presenter had scrolled away. */
+function beatTick(){
+  if (!beatRunning()){ beatT0 = Date.now(); return; }
+  if (Date.now() - beatT0 >= BEAT_MS) setBeat(beatIndex + 1);
+}
+const REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+renderBeats();
+setBeat(0);
+setInterval(beatTick, 250);
+
+// Hover pausing is handled by beatRunning() + CSS; nothing to latch here.
+
+// Don't animate a section nobody is looking at.
+if (window.IntersectionObserver){
+  new IntersectionObserver(entries => {
+    const wasVisible = beatVisible;
+    beatVisible = entries[entries.length - 1].isIntersecting;
+    if (beatVisible && !wasVisible) setBeat(beatIndex);
+  }, { threshold:0 }).observe($("problem"));
+}
+
+$("problemToggle").addEventListener("click", () => {
+  const p = $("problem"), collapsed = p.classList.toggle("collapsed");
+  $("problemToggle").textContent = collapsed ? "Show" : "Collapse";
+  $("problemToggle").setAttribute("aria-expanded", String(!collapsed));
+  if (!collapsed) setBeat(beatIndex);
+});
+
+$("tamperToggle").addEventListener("click", async () => {
+  tamperMode = !tamperMode;
+  $("tamperToggle").setAttribute("aria-pressed", String(tamperMode));
+  $("tamperPanel").hidden = !tamperMode;
+  if (tamperMode){
+    await refresh();
+    log("Tamper mode enabled — an attacker now has write access to a node’s local copy", "warn");
+  } else log("Tamper mode disabled", "net");
+});
+
+$("tNode").addEventListener("change", () => { $("tBlock").value = ""; renderAdvancedEditor(); });
+$("tBlock").addEventListener("change", () => { $("tField").value = ""; renderAdvancedEditor(); });
+$("tField").addEventListener("change", syncValueField);
+$("btnTamper").addEventListener("click", doTamper);
+$("btnRemine").addEventListener("click", doRemine);
+$("btnAttack").addEventListener("click", doAttack);
+$("btnPlayAttack").addEventListener("click", playWholeAttack);
+
+$("btnWhyDb").addEventListener("click", async () => { openOverlay("dbOverlay"); await renderDbModal(); });
+$("btnDbPlay").addEventListener("click", playDb);
+
+$("bAdd").addEventListener("click", () => {
+  readBuilder();
+  draft.milestones.push({ name:"", amount:100000, needsApproval:true, autoReleaseDays:7,
+                          allowDispute:true, requiresEvidence:false });
+  renderBuilderMilestones();
+});
+$("bDeploy").addEventListener("click", deployContract);
+$("bLoadDemo").addEventListener("click", () => { draft = clone(DEMO_CONTRACT); openBuilder(); });
+
+function openOverlay(id){
+  $(id).hidden = false;
+  const c = $(id).querySelector("[data-close]");
+  if (c) c.focus();
+}
+function closeOverlay(id){
+  $(id).hidden = true;
+  if (id === "dbOverlay"){ clearInterval(dbTimer); dbTimer = null; }
+}
+document.querySelectorAll("[data-close]").forEach(b => {
+  b.addEventListener("click", () => closeOverlay(b.closest(".overlay").id));
+});
+document.querySelectorAll(".overlay").forEach(o => {
+  o.addEventListener("click", e => { if (e.target === o) closeOverlay(o.id); });
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") document.querySelectorAll(".overlay:not([hidden])").forEach(o => closeOverlay(o.id));
+});
+
+/* --------------------------------------------------------------------- LAUNCH */
+$("cryptoNote").textContent = HAS_SUBTLE ? "" :
+  "(Web Crypto unavailable here — using an equivalent in-page SHA-256 implementation.)";
+boot();
+</script>
+</body>
+</html>
